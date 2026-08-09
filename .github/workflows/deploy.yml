@@ -20,6 +20,30 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17-alpine
+
+        env:
+          POSTGRES_DB: procash_test
+          POSTGRES_USER: procash_test
+          POSTGRES_PASSWORD: procash_test_password
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U procash_test -d procash_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/procash_test
+      SPRING_DATASOURCE_USERNAME: procash_test
+      SPRING_DATASOURCE_PASSWORD: procash_test_password
+      PROCASH_PUBLIC_BASE_URL: http://localhost:8080
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -41,6 +65,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
+
     needs: test
 
     steps:
@@ -71,7 +96,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            echo "Building containers..."
+            echo "Building ProCash..."
             docker compose up -d --build --remove-orphans
 
             echo "Containers:"
@@ -88,9 +113,7 @@ jobs:
               sleep 2
             done
 
-            echo "ProCash health check failed"
-
+            echo "Health check failed"
             docker compose logs --tail=100 app
-
             exit 1
           EOF
