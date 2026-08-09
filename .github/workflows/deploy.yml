@@ -67,6 +67,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: test
+    timeout-minutes: 15
 
     steps:
       - name: Configure SSH
@@ -88,31 +89,51 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
         run: |
           ssh \
+            -T \
             -i ~/.ssh/id_ed25519 \
             -o IdentitiesOnly=yes \
-            "$VPS_USER@$VPS_HOST" << 'EOF'
+            -o BatchMode=yes \
+            -o ConnectTimeout=10 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=3 \
+            "$VPS_USER@$VPS_HOST" 'bash -se' << 'EOF'
 
-            set -euo pipefail
+            set -euxo pipefail
 
+            echo "=== SSH CONNECTED ==="
+            whoami
+
+            echo "=== OPEN PROJECT ==="
             cd /opt/procash
+            pwd
 
-            git fetch origin main
+            echo "=== GIT FETCH ==="
+            GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=10' \
+              git fetch origin main
+
+            echo "=== UPDATE MAIN ==="
             git reset --hard origin/main
 
+            echo "=== DOCKER BUILD ==="
             docker compose up -d --build --remove-orphans
 
+            echo "=== CONTAINERS ==="
             docker compose ps
 
-            for i in {1..30}; do
+            echo "=== WAIT FOR PROCASH ==="
+
+            for i in {1..45}; do
               if curl -fsS http://127.0.0.1:8080/ > /dev/null; then
-                echo "ProCash deployed successfully"
+                echo "=== PROCASH DEPLOYED SUCCESSFULLY ==="
                 exit 0
               fi
 
+              echo "Waiting for ProCash... $i/45"
               sleep 2
             done
 
-            echo "Health check failed"
-            docker compose logs --tail=100 app
+            echo "=== HEALTH CHECK FAILED ==="
+            docker compose logs --tail=150 app
             exit 1
+
           EOF
