@@ -115,7 +115,7 @@ jobs:
             pwd
 
             echo "=== GIT FETCH ==="
-            GIT_SSH_COMMAND='ssh -o BatchMode=yes -o ConnectTimeout=10' \
+            GIT_SSH_COMMAND='ssh -i /home/deploy/.ssh/procash_deploy_git -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10' \
               git fetch origin main
 
             echo "=== UPDATE MAIN ==="
