@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 FROM eclipse-temurin:21-jdk-jammy AS builder
 
 WORKDIR /app
@@ -9,9 +11,14 @@ COPY settings.gradle.kts .
 
 RUN chmod +x gradlew
 
+# Прогреваем Gradle и сохраняем cache между Docker build
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew dependencies --no-daemon || true
+
 COPY src src
 
-RUN ./gradlew bootJar --no-daemon
+RUN --mount=type=cache,target=/root/.gradle \
+    ./gradlew bootJar --no-daemon
 
 
 FROM eclipse-temurin:21-jre-jammy
