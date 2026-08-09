@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Тестовая оплата — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/public-order.css}"
+    >
+</head>
+
+<body>
+
+<main class="order-page">
+
+    <section class="order-card">
+
+        <div class="order-card-heading">
+            <div>
+                <span class="order-eyebrow">
+                    Mock Freedom Pay
+                </span>
+
+                <h2>
+                    Оплата заказа
+                </h2>
+            </div>
+
+            <span class="order-status">
+                Ожидает оплаты
+            </span>
+        </div>
+
+        <div class="order-total">
+            <span>К оплате</span>
+
+            <strong th:text="${payment.amount + ' ₸'}">
+                14 700 ₸
+            </strong>
+        </div>
+
+        <form
+                th:action="@{
+                /payments/{id}/mock/success(
+                    id=${payment.id}
+                )
+            }"
+                method="post"
+        >
+            <button
+                    class="pay-button"
+                    type="submit"
+            >
+                Успешная оплата
+            </button>
+        </form>
+
+        <form
+                th:action="@{
+                /payments/{id}/mock/fail(
+                    id=${payment.id}
+                )
+            }"
+                method="post"
+                style="margin-top: 12px;"
+        >
+            <button
+                    type="submit"
+                    style="
+                    width: 100%;
+                    padding: 16px;
+                    border: 1px solid #ddd;
+                    border-radius: 15px;
+                    background: #fff;
+                    font-weight: 700;
+                    cursor: pointer;
+                "
+            >
+                Ошибка оплаты
+            </button>
+        </form>
+
+    </section>
+
+</main>
+
+</body>
+</html>

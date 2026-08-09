@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Заявка отправлена — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<main class="submission-page">
+    <section class="submission-card">
+        <div class="submission-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m5 12 4 4L19 6"/>
+            </svg>
+        </div>
+
+        <span class="dashboard-eyebrow">
+            Freedom Pay
+        </span>
+
+        <h1>Заявка отправлена</h1>
+
+        <p>
+            Данные сохранены и заявка переведена
+            в статус рассмотрения.
+        </p>
+
+        <div class="submission-status">
+            <span>Статус</span>
+            <strong th:text="${application.status}">
+                SUBMITTED_TO_FREEDOM
+            </strong>
+        </div>
+
+        <a
+                class="primary-button"
+                th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+        >
+            Вернуться к ресторану
+        </a>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Оплата завершена — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/public-order.css}"
+            href="/css/public-order.css"
+    >
+</head>
+
+<body>
+
+<main class="order-page">
+
+    <section class="payment-success-page">
+
+        <div class="payment-success-icon">
+            ✓
+        </div>
+
+        <span class="order-eyebrow">
+            Оплата завершена
+        </span>
+
+        <h1>
+            Заказ оплачен
+        </h1>
+
+        <p
+                class="payment-success-order-number"
+                th:if="${payment.order != null}"
+                th:text="'Заказ № ' + ${payment.order.orderNumber}"
+        >
+            Заказ № TEST-001
+        </p>
+
+        <strong
+                class="payment-success-amount"
+                th:text="${payment.amount + ' ₸'}"
+        >
+            14 700 ₸
+        </strong>
+
+        <p class="payment-success-message">
+            Спасибо! Платёж успешно принят.
+        </p>
+
+        <div
+                class="payment-success-details"
+                th:if="${payment.order != null}"
+        >
+
+            <div class="payment-success-detail-row">
+                <span>Заказ</span>
+
+                <strong
+                        th:text="${payment.order.orderNumber}"
+                >
+                    TEST-001
+                </strong>
+            </div>
+
+            <div
+                    class="payment-success-detail-row"
+                    th:if="${payment.order.table != null}"
+            >
+                <span>Стол</span>
+
+                <strong
+                        th:text="${payment.order.table.tableNumber}"
+                >
+                    1
+                </strong>
+            </div>
+
+            <div class="payment-success-detail-row">
+                <span>Статус</span>
+
+                <strong class="payment-success-status">
+                    Оплачено
+                </strong>
+            </div>
+
+        </div>
+
+        <a
+                class="pay-button"
+                th:if="${payment.order != null
+                and payment.order.table != null
+                and payment.order.restaurant != null}"
+                th:href="@{
+                /r/{slug}/q/{token}(
+                    slug=${payment.order.restaurant.slug},
+                    token=${payment.order.table.qrToken}
+                )
+            }"
+        >
+            <span>Вернуться к столу</span>
+        </a>
+
+    </section>
+
+    <footer class="order-footer">
+        Powered by <strong>ProCash</strong>
+    </footer>
+
+</main>
+
+</body>
+</html>

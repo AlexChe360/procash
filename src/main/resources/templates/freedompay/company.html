@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Компания — Freedom Pay — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/dashboard}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Подключение Freedom Pay</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                Закрыть
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content freedom-wizard-page">
+
+            <a
+                    class="back-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"/>
+                    <path d="m10 17-5-5 5-5"/>
+                </svg>
+
+                Назад к ресторану
+            </a>
+
+            <section class="wizard-heading">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+                    <h1>Подключение эквайринга</h1>
+
+                    <p>
+                        Заполните данные компании для формирования
+                        заявки на подключение платежей.
+                    </p>
+                </div>
+
+                <div class="wizard-restaurant">
+                    <span>Ресторан</span>
+
+                    <strong th:text="${restaurant.name}">
+                        ProCash Cafe
+                    </strong>
+                </div>
+            </section>
+
+            <nav class="wizard-progress">
+                <div class="wizard-step wizard-step-active">
+                    <span>1</span>
+                    <strong>Компания</strong>
+                </div>
+
+                <div class="wizard-step">
+                    <span>2</span>
+                    <strong>Руководитель</strong>
+                </div>
+
+                <div class="wizard-step">
+                    <span>3</span>
+                    <strong>Адрес</strong>
+                </div>
+
+                <div class="wizard-step">
+                    <span>4</span>
+                    <strong>Банк</strong>
+                </div>
+
+                <div class="wizard-step">
+                    <span>5</span>
+                    <strong>Ресторан</strong>
+                </div>
+
+                <div class="wizard-step">
+                    <span>6</span>
+                    <strong>Проверка</strong>
+                </div>
+            </nav>
+
+            <section class="wizard-card">
+                <div class="wizard-card-heading">
+                    <span>Шаг 1 из 6</span>
+
+                    <h2>Данные компании</h2>
+
+                    <p>
+                        Укажите юридические данные организации,
+                        которая будет принимать платежи.
+                    </p>
+                </div>
+
+                <form
+                        class="restaurant-form"
+                        th:action="@{
+                        /restaurants/{id}/payments/freedom-pay/company(
+                            id=${restaurant.id}
+                        )
+                    }"
+                        th:object="${companyForm}"
+                        method="post"
+                >
+                    <div class="form-field">
+                        <label for="organizationType">
+                            Форма организации
+                        </label>
+
+                        <select
+                                id="organizationType"
+                                th:field="*{organizationType}"
+                                th:classappend="${
+                                #fields.hasErrors('organizationType')
+                            } ? ' input-error' : ''"
+                        >
+                            <option value="">
+                                Выберите форму организации
+                            </option>
+
+                            <option value="IP">
+                                Индивидуальный предприниматель
+                            </option>
+
+                            <option value="TOO">
+                                Товарищество с ограниченной
+                                ответственностью
+                            </option>
+                        </select>
+
+                        <span
+                                class="field-error"
+                                th:if="${
+                                #fields.hasErrors('organizationType')
+                            }"
+                                th:errors="*{organizationType}"
+                        >
+                            Ошибка формы организации
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="companyName">
+                            Наименование организации
+                        </label>
+
+                        <input
+                                id="companyName"
+                                type="text"
+                                th:field="*{companyName}"
+                                placeholder="Например, ИП ProCash Cafe"
+                                autocomplete="organization"
+                                th:classappend="${
+                                #fields.hasErrors('companyName')
+                            } ? ' input-error' : ''"
+                        >
+
+                        <span
+                                class="field-error"
+                                th:if="${#fields.hasErrors('companyName')}"
+                                th:errors="*{companyName}"
+                        >
+                            Ошибка наименования
+                        </span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="bin">
+                            БИН или ИИН
+                        </label>
+
+                        <input
+                                id="bin"
+                                type="text"
+                                inputmode="numeric"
+                                maxlength="12"
+                                th:field="*{bin}"
+                                placeholder="Введите 12 цифр"
+                                autocomplete="off"
+                                th:classappend="${
+                                #fields.hasErrors('bin')
+                            } ? ' input-error' : ''"
+                        >
+
+                        <span class="field-hint">
+                            Для ИП укажите ИИН, для ТОО — БИН.
+                        </span>
+
+                        <span
+                                class="field-error"
+                                th:if="${#fields.hasErrors('bin')}"
+                                th:errors="*{bin}"
+                        >
+                            Ошибка БИН или ИИН
+                        </span>
+                    </div>
+
+                    <div class="wizard-actions">
+                        <a
+                                class="cancel-button"
+                                th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+                        >
+                            Отмена
+                        </a>
+
+                        <button
+                                class="primary-button"
+                                type="submit"
+                        >
+                            Сохранить и продолжить
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

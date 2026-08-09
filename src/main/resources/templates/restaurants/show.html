@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title
+            th:text="${restaurant.name + ' — ProCash'}"
+    >
+        Ресторан — ProCash
+    </title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/dashboard}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M3 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 10a3 3 0 0 0 6 0"/>
+                    <path d="M15 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/restaurants/{id}/orders(id=${restaurant.id})}"
+            >
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 7h12l1 14H5z"/>
+                    <path d="M9 7a3 3 0 0 1 6 0"/>
+                </svg>
+                <span>Заказы</span>
+            </a>
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{
+                        /restaurants/{id}/payments(
+                            id=${restaurant.id}
+                        )
+                    }"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect
+                            x="3"
+                            y="5"
+                            width="18"
+                            height="14"
+                            rx="3"
+                    />
+                    <path d="M3 9h18"/>
+                    <path d="M7 15h4"/>
+                </svg>
+
+                <span>Платежи</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Личный кабинет</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{
+                      /restaurants/{id}/tables(
+                          id=${restaurant.id}
+                      )
+                  }"
+            >
+                QR-коды
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                    <path d="M14 14h3v3h-3z"/>
+                    <path d="M18 18h3v3h-3z"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content">
+
+            <a
+                    class="back-link"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"/>
+                    <path d="m10 17-5-5 5-5"/>
+                </svg>
+
+                Назад к ресторанам
+            </a>
+
+            <section class="restaurant-page-heading">
+                <div class="restaurant-heading-main">
+                    <div class="restaurant-heading-logo">
+                        <span
+                                th:text="${#strings.toUpperCase(
+                                #strings.substring(
+                                    restaurant.name,
+                                    0,
+                                    1
+                                )
+                            )}"
+                        >
+                            R
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="restaurant-heading-status">
+                            <span
+                                    class="restaurant-status"
+                                    th:classappend="${
+                                    restaurant.status.name() == 'ACTIVE'
+                                } ? ' restaurant-status-active' : ''"
+                                    th:text="${
+                                    restaurant.status.name() == 'ACTIVE'
+                                        ? 'Активен'
+                                        : 'Черновик'
+                                }"
+                            >
+                                Черновик
+                            </span>
+                        </div>
+
+                        <h1 th:text="${restaurant.name}">
+                            ProCash Cafe
+                        </h1>
+
+                        <p>
+                            <span
+                                    th:text="${
+                                    restaurant.city != null
+                                        ? restaurant.city
+                                        : 'Город не указан'
+                                }"
+                            >
+                                Алматы
+                            </span>
+
+                            <span class="heading-separator">•</span>
+
+                            <span th:text="'procash.kz/r/' + ${restaurant.slug}">
+                                procash.kz/r/procash-cafe
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <a
+                        class="secondary-outline-button"
+                        th:href="@{/restaurants/{id}/edit(id=${restaurant.id})}"
+                >
+                    Настройки
+                </a>
+            </section>
+
+            <section class="restaurant-overview-grid">
+
+                <article class="restaurant-overview-card">
+                    <span>Заказы сегодня</span>
+                    <strong>0</strong>
+                    <small>Нет новых заказов</small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>Оплачено сегодня</span>
+                    <strong>0 ₸</strong>
+                    <small>Платежей пока нет</small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>QR-коды</span>
+
+                    <strong th:text="${tablesCount}">
+                        0
+                    </strong>
+
+                    <small
+                            th:text="${tablesCount > 0
+            ? 'QR-коды столов настроены'
+            : 'Столы ещё не добавлены'}"
+                    >
+                        Столы ещё не добавлены
+                    </small>
+                </article>
+
+            </section>
+
+            <section class="restaurant-section">
+                <div class="restaurant-section-heading">
+                    <div>
+                        <span class="dashboard-eyebrow">
+                            Подключение
+                        </span>
+
+                        <h2>Интеграции ресторана</h2>
+
+                        <p>
+                            Настройте POS-систему, интернет-эквайринг
+                            и QR-коды для столов.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="integration-grid">
+
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect
+                                            x="3"
+                                            y="4"
+                                            width="18"
+                                            height="14"
+                                            rx="2"
+                                    />
+
+                                    <path d="M8 21h8"/>
+                                    <path d="M12 18v3"/>
+                                    <path d="M7 9h10"/>
+                                    <path d="M7 13h6"/>
+                                </svg>
+                            </div>
+
+                            <span class="integration-status">
+                Не подключено
+            </span>
+
+                        </div>
+
+                        <h3>POS-система</h3>
+
+                        <p>
+                            Подключите r-Keeper или iiko,
+                            чтобы получать актуальные заказы гостей.
+                        </p>
+
+                        <a
+                                class="integration-button"
+                                th:href="@{
+                                /restaurants/{id}/integrations/pos(
+                                    id=${restaurant.id}
+                                )
+                            }"
+                        >
+                            Подключить POS
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </a>
+                    </article>
+
+                    <article class="integration-card integration-card-featured">
+
+                        <div class="integration-card-top">
+
+                            <div class="integration-icon integration-icon-dark">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect
+                                            x="3"
+                                            y="5"
+                                            width="18"
+                                            height="14"
+                                            rx="2"
+                                    />
+
+                                    <path d="M3 10h18"/>
+                                    <path d="M7 15h4"/>
+                                </svg>
+                            </div>
+
+                            <!-- Заявки ещё нет -->
+                            <span
+                                    class="integration-status"
+                                    th:if="${freedomPayApplication == null}"
+                            >
+                                Заявка не подана
+                            </span>
+
+                            <!-- Заявка существует -->
+                            <span
+                                    class="integration-status"
+                                    th:if="${freedomPayApplication != null}"
+                                    th:classappend="${
+                                    freedomPayApplication.status.name() == 'APPROVED'
+                                        ? ' integration-status-connected'
+                                        : ''
+                                }"
+                                    th:switch="${freedomPayApplication.status.name()}"
+                            >
+                              <span th:case="'DRAFT'">
+                                  Заявка не подана
+                              </span>
+
+                              <span th:case="'READY_FOR_REVIEW'">
+                                  На проверке ProCash
+                              </span>
+
+                              <span th:case="'SUBMITTED_TO_FREEDOM'">
+                                  Передано в Freedom Pay
+                              </span>
+
+                              <span th:case="'UNDER_FREEDOM_REVIEW'">
+                                  На рассмотрении Freedom Pay
+                              </span>
+
+                              <span th:case="'NEEDS_CHANGES'">
+                                  Требуются изменения
+                              </span>
+
+                              <span th:case="'APPROVED'">
+                                  Подключено
+                              </span>
+
+                              <span th:case="'REJECTED'">
+                                  Отклонено
+                              </span>
+
+                              <span th:case="*">
+                                  Неизвестно
+                              </span>
+                          </span>
+
+                        </div>
+
+                        <h3>Freedom Pay</h3>
+
+                        <!-- Нет заявки -->
+                        <p th:if="${freedomPayApplication == null}">
+                            Подайте заявку на подключение приёма платежей через Freedom Pay.
+                        </p>
+
+                        <!-- Есть заявка -->
+                        <p
+                                th:if="${freedomPayApplication != null}"
+                                th:switch="${freedomPayApplication.status.name()}"
+                        >
+                          <span th:case="'DRAFT'">
+                              Завершите заполнение заявки на подключение Freedom Pay.
+                          </span>
+
+                            <span th:case="'READY_FOR_REVIEW'">
+                              Заявка отправлена и ожидает проверки командой ProCash.
+                          </span>
+
+                            <span th:case="'SUBMITTED_TO_FREEDOM'">
+                              Заявка передана в Freedom Pay.
+                          </span>
+
+                            <span th:case="'UNDER_FREEDOM_REVIEW'">
+                              Freedom Pay рассматривает заявку на подключение.
+                          </span>
+
+                            <span th:case="'NEEDS_CHANGES'">
+                              В заявке необходимо исправить данные.
+                          </span>
+
+                            <span th:case="'APPROVED'">
+                              Приём платежей через Freedom Pay активирован.
+                          </span>
+
+                            <span th:case="'REJECTED'">
+                              Freedom Pay отклонил заявку на подключение.
+                          </span>
+
+                            <span th:case="*">
+                              Подключение Freedom Pay.
+                          </span>
+                        </p>
+
+                        <a
+                                class="integration-button integration-button-primary"
+                                th:href="${
+                              freedomPayApplication == null
+                              or freedomPayApplication.status.name() == 'DRAFT'
+                              or freedomPayApplication.status.name() == 'NEEDS_CHANGES'
+                                  ? '/restaurants/' + restaurant.id +
+                                    '/payments/freedom-pay'
+                                  : '/restaurants/' + restaurant.id +
+                                    '/payments/freedom-pay/status'
+                          }"
+                        >
+
+                          <span
+                                  th:if="${freedomPayApplication == null}"
+                          >
+                              Подать заявку
+                          </span>
+
+                            <span
+                                    th:if="${freedomPayApplication != null}"
+                                    th:switch="${freedomPayApplication.status.name()}"
+                            >
+                              <span th:case="'DRAFT'">
+                                  Продолжить заполнение
+                              </span>
+
+                              <span th:case="'READY_FOR_REVIEW'">
+                                  Посмотреть статус
+                              </span>
+
+                              <span th:case="'SUBMITTED_TO_FREEDOM'">
+                                  Посмотреть статус
+                              </span>
+
+                              <span th:case="'UNDER_FREEDOM_REVIEW'">
+                                  Посмотреть статус
+                              </span>
+
+                              <span th:case="'NEEDS_CHANGES'">
+                                  Исправить заявку
+                              </span>
+
+                              <span th:case="'APPROVED'">
+                                  Посмотреть подключение
+                              </span>
+
+                              <span th:case="'REJECTED'">
+                                  Посмотреть решение
+                              </span>
+
+                              <span th:case="*">
+                                  Посмотреть
+                              </span>
+                          </span>
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+
+                        </a>
+
+                    </article>
+
+                    <article class="integration-card">
+                        <div class="integration-card-top">
+                            <div class="integration-icon">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                    <path d="M14 14h3v3h-3z"/>
+                                    <path d="M18 18h3v3h-3z"/>
+                                    <path d="M18 14h3"/>
+                                    <path d="M14 18v3"/>
+                                </svg>
+                            </div>
+                            <span
+                                    class="integration-status"
+                                    th:classappend="${tablesCount > 0}
+                                    ? ' integration-status-connected'
+                                    : ''"
+                                    th:text="${tablesCount > 0}
+                                    ? |Настроено: ${tablesCount}|
+                                    : 'Не настроено'"
+                            >
+                                Не настроено
+                            </span>
+                        </div>
+
+                        <h3>QR-коды столов</h3>
+
+                        <p>
+                            Добавьте столы и сформируйте уникальные
+                            QR-коды для оплаты заказов.
+                        </p>
+
+                        <a
+                                class="integration-button"
+                                th:href="@{
+        /restaurants/{id}/tables(
+            id=${restaurant.id}
+        )
+    }"
+                        >
+    <span
+            th:text="${tablesCount > 0}
+            ? 'Управлять столами'
+            : 'Добавить столы'"
+    >
+        Добавить столы
+    </span>
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </a>
+                    </article>
+
+                </div>
+            </section>
+
+            <section class="restaurant-section">
+                <div class="restaurant-section-heading">
+                    <div>
+                        <span class="dashboard-eyebrow">
+                            Информация
+                        </span>
+
+                        <h2>Данные ресторана</h2>
+                    </div>
+                </div>
+
+                <article class="restaurant-info-card">
+                    <div class="restaurant-info-row">
+                        <span>Название</span>
+                        <strong th:text="${restaurant.name}">
+                            ProCash Cafe
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Город</span>
+
+                        <strong
+                                th:text="${
+                                restaurant.city != null
+                                    ? restaurant.city
+                                    : 'Не указан'
+                            }"
+                        >
+                            Алматы
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Телефон</span>
+
+                        <strong
+                                th:text="${
+                                restaurant.phone != null
+                                    ? restaurant.phone
+                                    : 'Не указан'
+                            }"
+                        >
+                            +7 700 000 00 00
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Адрес страницы</span>
+
+                        <strong th:text="'/r/' + ${restaurant.slug}">
+                            /r/procash-cafe
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Описание</span>
+
+                        <strong
+                                th:text="${
+                                restaurant.description != null
+                                    ? restaurant.description
+                                    : 'Не указано'
+                            }"
+                        >
+                            Кофейня
+                        </strong>
+                    </div>
+                </article>
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

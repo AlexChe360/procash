@@ -1,0 +1,509 @@
+<!doctype html>
+<html
+        lang="ru"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Заявка Freedom Pay — ProCash Admin</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+    >
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/admin}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/admin}"
+            >
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/admin/freedom-pay/applications}"
+            >
+                <span>Заявки Freedom Pay</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+
+            <div class="topbar-user">
+                <div class="user-meta">
+                    <strong>
+                        Администратор ProCash
+                    </strong>
+
+                    <span th:text="${email}">
+                        admin@procash.kz
+                    </span>
+                </div>
+            </div>
+
+        </header>
+
+        <main class="dashboard-content">
+
+            <a
+                    class="back-link"
+                    th:href="@{/admin/freedom-pay/applications}"
+            >
+                ← Назад к заявкам
+            </a>
+
+            <section class="admin-page-heading">
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+                    <h1
+                            th:text="${freedomApp.restaurant.name}"
+                    >
+                        Caffe Time
+                    </h1>
+
+                    <p>
+                        Проверка заявки на подключение.
+                    </p>
+                </div>
+
+                <span
+                        class="application-status-badge"
+                        th:switch="${freedomApp.status.name()}"
+                >
+                    <span th:case="'READY_FOR_REVIEW'">
+                        На проверке ProCash
+                    </span>
+
+                    <span th:case="'SUBMITTED_TO_FREEDOM'">
+                        Передано в Freedom Pay
+                    </span>
+
+                    <span th:case="'UNDER_FREEDOM_REVIEW'">
+                        На рассмотрении Freedom Pay
+                    </span>
+
+                    <span th:case="'NEEDS_CHANGES'">
+                        Требуются изменения
+                    </span>
+
+                    <span th:case="'APPROVED'">
+                        Подключено
+                    </span>
+
+                    <span th:case="'REJECTED'">
+                        Отклонено
+                    </span>
+
+                    <span th:case="*">
+                        Черновик
+                    </span>
+                </span>
+
+            </section>
+
+            <section class="admin-detail-grid">
+
+                <article class="admin-detail-card">
+
+                    <h2>Компания</h2>
+
+                    <div class="restaurant-info-row">
+                        <span>Тип организации</span>
+
+                        <strong th:switch="${freedomApp.organizationType}">
+                            <span th:case="'IP'">ИП</span>
+                            <span th:case="'TOO'">ТОО</span>
+                            <span th:case="'AO'">АО</span>
+                            <span th:case="'INDIVIDUAL'">Физическое лицо</span>
+                            <span th:case="*" th:text="${freedomApp.organizationType ?: '—'}">
+                              —
+                            </span>
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Название</span>
+
+                        <strong
+                                th:text="${freedomApp.companyName ?: '—'}"
+                        >
+                            ИП Caffe Time
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>БИН / ИИН</span>
+
+                        <strong
+                                th:text="${freedomApp.bin ?: '—'}"
+                        >
+                            123456789012
+                        </strong>
+                    </div>
+
+                </article>
+
+                <article class="admin-detail-card">
+
+                    <h2>Руководитель</h2>
+
+                    <div class="restaurant-info-row">
+                        <span>ФИО</span>
+
+                        <strong
+                                th:text="${freedomApp.directorName ?: '—'}"
+                        >
+                            Иван Иванов
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>ИИН</span>
+
+                        <strong
+                                th:text="${freedomApp.directorIin ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Телефон</span>
+
+                        <strong
+                                th:text="${freedomApp.directorPhone ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Email</span>
+
+                        <strong
+                                th:text="${freedomApp.directorEmail ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                </article>
+
+                <article class="admin-detail-card">
+
+                    <h2>Банк</h2>
+
+                    <div class="restaurant-info-row">
+                        <span>IBAN</span>
+
+                        <strong
+                                th:text="${freedomApp.iban ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Банк</span>
+
+                        <strong
+                                th:text="${freedomApp.bankName ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>BIC</span>
+
+                        <strong
+                                th:text="${freedomApp.bankBic ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                </article>
+
+                <article class="admin-detail-card">
+
+                    <h2>Ресторан</h2>
+
+                    <div class="restaurant-info-row">
+                        <span>Сайт</span>
+
+                        <strong
+                                th:text="${freedomApp.websiteUrl ?: '—'}"
+                        >
+                            —
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Категория</span>
+
+                        <strong th:switch="${freedomApp.businessCategory}">
+                            <span th:case="'CAFE'">Кафе</span>
+                            <span th:case="'RESTAURANT'">Ресторан</span>
+                            <span th:case="'BAR'">Бар</span>
+                            <span th:case="'COFFEE_SHOP'">Кофейня</span>
+                            <span th:case="*" th:text="${freedomApp.businessCategory ?: '—'}">
+                                —
+                            </span>
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Средний чек</span>
+
+                        <strong
+                                th:text="${freedomApp.averageCheck != null
+                            ? #numbers.formatDecimal(
+                                freedomApp.averageCheck,
+                                0,
+                                'WHITESPACE',
+                                0,
+                                'POINT'
+                            ) + ' ₸'
+                            : '—'}"
+                        >
+                            23 000 ₸
+                        </strong>
+                    </div>
+
+                    <div class="restaurant-info-row">
+                        <span>Оборот в месяц</span>
+
+                        <strong
+                                th:text="${freedomApp.expectedMonthlyTurnover != null
+                              ? #numbers.formatDecimal(
+                                  freedomApp.expectedMonthlyTurnover,
+                                  0,
+                                  'WHITESPACE',
+                                  0,
+                                  'POINT'
+                              ) + ' ₸'
+                              : '—'}"
+                        >
+                            10 000 000 ₸
+                        </strong>
+                    </div>
+
+                </article>
+
+            </section>
+
+            <section
+                    class="admin-review-actions"
+                    th:if="${freedomApp.status.name() == 'READY_FOR_REVIEW'}"
+            >
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Проверка ProCash
+                    </span>
+
+                    <h2>Проверка заявки</h2>
+
+                    <p>
+                        Проверьте данные перед отправкой в Freedom Pay.
+                    </p>
+                </div>
+
+                <div class="admin-review-forms">
+
+                    <form
+                            class="admin-review-form"
+                            th:action="@{
+                                /admin/freedom-pay/applications/{id}/changes(
+                                    id=${freedomApp.id}
+                                )
+                            }"
+                            method="post"
+                    >
+                        <label for="changesComment">
+                            Причина возврата
+                        </label>
+
+                        <textarea
+                                id="changesComment"
+                                name="comment"
+                                rows="3"
+                                required
+                                placeholder="Например: необходимо уточнить банковские реквизиты"
+                        ></textarea>
+
+                        <button
+                                class="secondary-outline-button"
+                                type="submit"
+                        >
+                            Вернуть на исправление
+                        </button>
+                    </form>
+
+                    <form
+                            th:action="@{
+                                /admin/freedom-pay/applications/{id}/submit(
+                                    id=${freedomApp.id}
+                                )
+                            }"
+                            method="post"
+                    >
+                        <button
+                                class="integration-button integration-button-primary"
+                                type="submit"
+                        >
+                            Отправить в Freedom Pay
+                        </button>
+                    </form>
+
+                </div>
+            </section>
+
+            <section
+                    class="admin-review-actions"
+                    th:if="${freedomApp.status.name() == 'UNDER_FREEDOM_REVIEW'}"
+            >
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Решение Freedom Pay
+                    </span>
+
+                    <h2>Результат рассмотрения</h2>
+
+                    <p>
+                        Временный блок для тестирования статусов Freedom Pay.
+                    </p>
+                </div>
+
+                <div class="admin-review-forms">
+
+                    <form
+                            class="admin-review-form"
+                            th:action="@{
+                                /admin/freedom-pay/applications/{id}/changes(
+                                    id=${freedomApp.id}
+                                )
+                            }"
+                            method="post"
+                    >
+                        <label for="freedomChangesComment">
+                            Что необходимо исправить
+                        </label>
+
+                        <textarea
+                                id="freedomChangesComment"
+                                name="comment"
+                                rows="3"
+                                required
+                                placeholder="Опишите, какие данные необходимо исправить"
+                        ></textarea>
+
+                        <button
+                                class="secondary-outline-button"
+                                type="submit"
+                        >
+                            Вернуть на исправление
+                        </button>
+                    </form>
+
+                    <form
+                            class="admin-review-form"
+                            th:action="@{
+                                /admin/freedom-pay/applications/{id}/reject(
+                                    id=${freedomApp.id}
+                                )
+                            }"
+                            method="post"
+                    >
+                        <label for="rejectComment">
+                            Причина отказа
+                        </label>
+
+                        <textarea
+                                id="rejectComment"
+                                name="comment"
+                                rows="3"
+                                required
+                                placeholder="Укажите причину отказа Freedom Pay"
+                        ></textarea>
+
+                        <button
+                                class="secondary-outline-button"
+                                type="submit"
+                        >
+                            Отклонить
+                        </button>
+                    </form>
+
+                    <form
+                            th:action="@{
+                                /admin/freedom-pay/applications/{id}/approve(
+                                    id=${freedomApp.id}
+                                )
+                            }"
+                            method="post"
+                    >
+                        <button
+                                class="integration-button integration-button-primary"
+                                type="submit"
+                        >
+                            Одобрить
+                        </button>
+                    </form>
+
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

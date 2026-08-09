@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title
+            th:text="'Стол ' + ${table.tableNumber} +
+                 ' — ' + ${restaurant.name} + ' — ProCash'"
+    >
+        Стол — ProCash
+    </title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a
+                    class="sidebar-logo"
+                    th:href="@{/dashboard}"
+            >
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong th:text="${restaurant.name}">
+                        Ресторан
+                    </strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                Закрыть
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content table-details-page">
+
+            <a
+                    class="back-link"
+                    th:href="@{
+                    /restaurants/{id}/tables(
+                        id=${restaurant.id}
+                    )
+                }"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"/>
+                    <path d="m10 17-5-5 5-5"/>
+                </svg>
+
+                Назад к столам
+            </a>
+
+            <section class="dashboard-heading">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        QR-код стола
+                    </span>
+
+                    <h1>
+                        Стол
+                        <span th:text="${table.tableNumber}">
+                            1
+                        </span>
+                    </h1>
+
+                    <p
+                            th:text="${table.displayName != null
+                            ? table.displayName
+                            : 'QR-код для открытия страницы заказа'}"
+                    >
+                        Стол у окна
+                    </p>
+                </div>
+
+                <span
+                        class="table-status"
+                        th:classappend="${table.active}
+                        ? ' table-status-active'
+                        : ' table-status-disabled'"
+                        th:text="${table.active}
+                        ? 'Активен'
+                        : 'Отключён'"
+                >
+                    Активен
+                </span>
+            </section>
+
+            <section class="table-details-grid">
+
+                <article class="qr-preview-card">
+                    <div class="qr-preview">
+                        <img
+                                th:src="@{
+                                /restaurants/{restaurantId}/tables/{tableId}/qr.png(
+                                    restaurantId=${restaurant.id},
+                                    tableId=${table.id},
+                                    size=640
+                                )
+                            }"
+                                alt="QR-код стола"
+                                width="640"
+                                height="640"
+                        >
+                    </div>
+
+                    <div class="qr-preview-info">
+                        <span>Ссылка внутри QR-кода</span>
+
+                        <strong th:text="${publicUrl}">
+                            http://localhost:8080/q/token
+                        </strong>
+                    </div>
+
+                    <a
+                            class="primary-button qr-download-button"
+                            th:href="@{
+                            /restaurants/{restaurantId}/tables/{tableId}/qr.png(
+                                restaurantId=${restaurant.id},
+                                tableId=${table.id},
+                                size=1200
+                            )
+                        }"
+                    >
+                        Скачать PNG
+
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3v12"/>
+                            <path d="m7 10 5 5 5-5"/>
+                            <path d="M5 21h14"/>
+                        </svg>
+                    </a>
+                </article>
+
+                <article class="table-details-card">
+                    <span class="dashboard-eyebrow">
+                        Информация
+                    </span>
+
+                    <h2>Данные стола</h2>
+
+                    <dl class="table-details-list">
+                        <div>
+                            <dt>Номер</dt>
+
+                            <dd th:text="${table.tableNumber}">
+                                1
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Название</dt>
+
+                            <dd
+                                    th:text="${table.displayName != null
+                                    ? table.displayName
+                                    : 'Не указано'}"
+                            >
+                                Стол у окна
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>Статус</dt>
+
+                            <dd
+                                    th:text="${table.active
+                                    ? 'Активен'
+                                    : 'Отключён'}"
+                            >
+                                Активен
+                            </dd>
+                        </div>
+
+                        <div>
+                            <dt>QR token</dt>
+
+                            <dd th:text="${table.qrToken}">
+                                UUID
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <div class="wizard-info-box">
+                        <div class="wizard-info-icon">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 11v5"/>
+                                <path d="M12 8h.01"/>
+                            </svg>
+                        </div>
+
+                        <div>
+                            <strong>
+                                Не используйте ID стола в QR-коде
+                            </strong>
+
+                            <p>
+                                Публичная ссылка использует отдельный
+                                случайный token, а не внутренний UUID.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form
+                            class="mock-order-form"
+                            th:action="@{
+                            /restaurants/{restaurantId}/tables/{tableId}/mock-order(
+                                restaurantId=${restaurant.id},
+                                tableId=${table.id}
+                            )
+                        }"
+                            method="post"
+                    >
+                        <button
+                                class="integration-button integration-button-primary"
+                                type="submit"
+                        >
+                            Создать тестовый заказ
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </button>
+                    </form>
+                </article>
+
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

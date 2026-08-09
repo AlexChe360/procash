@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+  >
+
+  <title>Данные ресторана — Freedom Pay — ProCash</title>
+
+  <link
+          rel="stylesheet"
+          th:href="@{/css/dashboard.css}"
+          href="/css/dashboard.css"
+  >
+</head>
+
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a
+              class="sidebar-logo"
+              th:href="@{/dashboard}"
+      >
+        Pro<span>Cash</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-navigation">
+      <a
+              class="sidebar-link"
+              th:href="@{/dashboard}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+                  d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+          />
+        </svg>
+
+        <span>Главная</span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-active"
+              th:href="@{/restaurants}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 10v10h16V10"/>
+          <path d="M3 10 5 4h14l2 6"/>
+          <path d="M3 10a3 3 0 0 0 6 0"/>
+          <path d="M9 10a3 3 0 0 0 6 0"/>
+          <path d="M15 10a3 3 0 0 0 6 0"/>
+          <path d="M9 20v-5h6v5"/>
+        </svg>
+
+        <span>Рестораны</span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-disabled"
+              href="#"
+              aria-disabled="true"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 7h12l1 14H5z"/>
+          <path d="M9 7a3 3 0 0 1 6 0"/>
+        </svg>
+
+        <span>Заказы</span>
+
+        <span class="sidebar-badge">
+                    Скоро
+                </span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-disabled"
+              href="#"
+              aria-disabled="true"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect
+                  x="3"
+                  y="5"
+                  width="18"
+                  height="14"
+                  rx="2"
+          />
+
+          <path d="M3 10h18"/>
+          <path d="M7 15h4"/>
+        </svg>
+
+        <span>Платежи</span>
+
+        <span class="sidebar-badge">
+                    Скоро
+                </span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-disabled"
+              href="#"
+              aria-disabled="true"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 12h8"/>
+          <path d="M12 8v8"/>
+
+          <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="4"
+          />
+        </svg>
+
+        <span>Интеграции</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a
+              class="sidebar-link sidebar-link-disabled"
+              href="#"
+              aria-disabled="true"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+
+          <path
+                  d="M19.4 15a1.8 1.8 0 0 0 .36 2l.06.06-2.12 2.12-.06-.06a1.8 1.8 0 0 0-2-.36 1.8 1.8 0 0 0-1.1 1.64V21h-3v-.6a1.8 1.8 0 0 0-1.1-1.64 1.8 1.8 0 0 0-2 .36l-.06.06-2.12-2.12.06-.06a1.8 1.8 0 0 0 .36-2A1.8 1.8 0 0 0 5 13.9H4.4v-3H5A1.8 1.8 0 0 0 6.64 9.8a1.8 1.8 0 0 0-.36-2l-.06-.06L8.34 5.6l.06.06a1.8 1.8 0 0 0 2 .36A1.8 1.8 0 0 0 11.5 4.4V3.8h3v.6a1.8 1.8 0 0 0 1.1 1.64 1.8 1.8 0 0 0 2-.36l.06-.06 2.12 2.12-.06.06a1.8 1.8 0 0 0-.36 2A1.8 1.8 0 0 0 21 10.9h.6v3H21A1.8 1.8 0 0 0 19.4 15z"
+          />
+        </svg>
+
+        <span>Настройки</span>
+      </a>
+
+      <form
+              class="logout-form"
+              th:action="@{/logout}"
+              method="post"
+      >
+        <button
+                class="sidebar-link logout-button"
+                type="submit"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 5H5v14h5"/>
+            <path d="m14 8 4 4-4 4"/>
+            <path d="M8 12h10"/>
+          </svg>
+
+          <span>Выйти</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <header class="topbar">
+      <button
+              class="mobile-menu-button"
+              type="button"
+              aria-label="Открыть меню"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="topbar-user">
+        <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+        </div>
+
+        <div class="user-meta">
+          <strong>Подключение Freedom Pay</strong>
+
+          <span th:text="${email}">
+                        user@example.com
+                    </span>
+        </div>
+      </div>
+
+      <a
+              class="topbar-site-link"
+              th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+      >
+        Закрыть
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18"/>
+          <path d="m6 6 12 12"/>
+        </svg>
+      </a>
+    </header>
+
+    <main class="dashboard-content freedom-wizard-page">
+
+      <a
+              class="back-link"
+              th:href="@{
+                    /restaurants/{id}/payments/freedom-pay/bank(
+                        id=${restaurant.id}
+                    )
+                }"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <path d="m10 17-5-5 5-5"/>
+        </svg>
+
+        Назад к банковским реквизитам
+      </a>
+
+      <section class="wizard-heading">
+        <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+          <h1>Подключение эквайринга</h1>
+
+          <p>
+            Укажите сведения о ресторане,
+            его деятельности и ожидаемом обороте.
+          </p>
+        </div>
+
+        <div class="wizard-restaurant">
+          <span>Ресторан</span>
+
+          <strong th:text="${restaurant.name}">
+            ProCash Cafe
+          </strong>
+        </div>
+      </section>
+
+      <nav class="wizard-progress">
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/company(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Компания</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/director(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Руководитель</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/address(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Адрес</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/bank(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Банк</strong>
+        </a>
+
+        <div class="wizard-step wizard-step-active">
+          <span>5</span>
+          <strong>Ресторан</strong>
+        </div>
+
+        <div class="wizard-step">
+          <span>6</span>
+          <strong>Проверка</strong>
+        </div>
+      </nav>
+
+      <section class="wizard-card">
+        <div class="wizard-card-heading">
+          <span>Шаг 5 из 6</span>
+
+          <h2>Информация о ресторане</h2>
+
+          <p>
+            Эти данные нужны Freedom Pay для проверки
+            деятельности и предполагаемого объёма платежей.
+          </p>
+        </div>
+
+        <form
+                class="restaurant-form"
+                th:action="@{
+                        /restaurants/{id}/payments/freedom-pay/restaurant(
+                            id=${restaurant.id}
+                        )
+                    }"
+                th:object="${restaurantForm}"
+                method="post"
+        >
+          <div class="form-field">
+            <label for="websiteUrl">
+              Адрес сайта или страницы ресторана
+            </label>
+
+            <input
+                    id="websiteUrl"
+                    type="url"
+                    th:field="*{websiteUrl}"
+                    placeholder="https://procash.kz/r/my-restaurant"
+                    autocomplete="url"
+                    th:classappend="${
+                                #fields.hasErrors('websiteUrl')
+                            } ? ' input-error' : ''"
+            >
+
+            <span class="field-hint">
+                            Укажите страницу, на которой клиент
+                            сможет ознакомиться с рестораном.
+                        </span>
+
+            <span
+                    class="field-error"
+                    th:if="${#fields.hasErrors('websiteUrl')}"
+                    th:errors="*{websiteUrl}"
+            >
+                            Ошибка адреса сайта
+                        </span>
+          </div>
+
+          <div class="form-field">
+            <label for="businessCategory">
+              Категория деятельности
+            </label>
+
+            <select
+                    id="businessCategory"
+                    th:field="*{businessCategory}"
+                    th:classappend="${
+                                #fields.hasErrors('businessCategory')
+                            } ? ' input-error' : ''"
+            >
+              <option value="">
+                Выберите категорию
+              </option>
+
+              <option value="RESTAURANT">
+                Ресторан
+              </option>
+
+              <option value="CAFE">
+                Кафе
+              </option>
+
+              <option value="COFFEE_SHOP">
+                Кофейня
+              </option>
+
+              <option value="FAST_FOOD">
+                Быстрое питание
+              </option>
+
+              <option value="FOOD_DELIVERY">
+                Доставка еды
+              </option>
+
+              <option value="OTHER_FOOD_SERVICE">
+                Другое заведение общественного питания
+              </option>
+            </select>
+
+            <span
+                    class="field-error"
+                    th:if="${#fields.hasErrors('businessCategory')}"
+                    th:errors="*{businessCategory}"
+            >
+                            Ошибка категории
+                        </span>
+          </div>
+
+          <div class="form-field">
+            <label for="businessDescription">
+              Описание деятельности
+            </label>
+
+            <textarea
+                    id="businessDescription"
+                    th:field="*{businessDescription}"
+                    rows="6"
+                    maxlength="1500"
+                    placeholder="Опишите деятельность ресторана, способ оказания услуг и процесс оплаты"
+                    th:classappend="${
+                                #fields.hasErrors('businessDescription')
+                            } ? ' input-error' : ''"
+            ></textarea>
+
+            <span class="field-hint">
+                            Например: ресторан принимает заказы в заведении,
+                            а гости оплачивают счёт по QR-коду на столе.
+                        </span>
+
+            <span
+                    class="field-error"
+                    th:if="${#fields.hasErrors(
+                                'businessDescription'
+                            )}"
+                    th:errors="*{businessDescription}"
+            >
+                            Ошибка описания деятельности
+                        </span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="averageCheck">
+                Средний чек
+              </label>
+
+              <div class="money-field">
+                <input
+                        id="averageCheck"
+                        type="number"
+                        min="1"
+                        step="1"
+                        th:field="*{averageCheck}"
+                        placeholder="10000"
+                        inputmode="decimal"
+                        th:classappend="${
+                                        #fields.hasErrors('averageCheck')
+                                    } ? ' input-error' : ''"
+                >
+
+                <span>₸</span>
+              </div>
+
+              <span
+                      class="field-error"
+                      th:if="${#fields.hasErrors('averageCheck')}"
+                      th:errors="*{averageCheck}"
+              >
+                                Ошибка среднего чека
+                            </span>
+            </div>
+
+            <div class="form-field">
+              <label for="expectedMonthlyTurnover">
+                Ожидаемый оборот в месяц
+              </label>
+
+              <div class="money-field">
+                <input
+                        id="expectedMonthlyTurnover"
+                        type="number"
+                        min="1"
+                        step="1"
+                        th:field="*{expectedMonthlyTurnover}"
+                        placeholder="5000000"
+                        inputmode="decimal"
+                        th:classappend="${
+                                        #fields.hasErrors(
+                                            'expectedMonthlyTurnover'
+                                        )
+                                    } ? ' input-error' : ''"
+                >
+
+                <span>₸</span>
+              </div>
+
+              <span
+                      class="field-error"
+                      th:if="${#fields.hasErrors(
+                                    'expectedMonthlyTurnover'
+                                )}"
+                      th:errors="*{expectedMonthlyTurnover}"
+              >
+                                Ошибка ожидаемого оборота
+                            </span>
+            </div>
+          </div>
+
+          <div class="wizard-info-box">
+            <div class="wizard-info-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 11v5"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            </div>
+
+            <div>
+              <strong>
+                Укажите реалистичные значения
+              </strong>
+
+              <p>
+                Средний чек и оборот используются
+                при рассмотрении заявки на подключение.
+              </p>
+            </div>
+          </div>
+
+          <div class="wizard-actions">
+            <a
+                    class="cancel-button"
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/bank(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Назад
+            </a>
+
+            <button
+                    class="primary-button"
+                    type="submit"
+            >
+              Перейти к проверке
+
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14"/>
+                <path d="m14 7 5 5-5 5"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

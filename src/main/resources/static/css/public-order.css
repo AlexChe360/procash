@@ -1,0 +1,350 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f7f7f4;
+    color: #111111;
+
+    font-family: Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+.order-page {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.order-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-bottom: 28px;
+}
+
+.restaurant-logo {
+    width: 56px;
+    height: 56px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+    background: #f1d900;
+
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.order-header h1 {
+    margin: 0 0 4px;
+    font-size: 24px;
+}
+
+.order-header p {
+    margin: 0;
+    color: #808080;
+    font-size: 15px;
+}
+
+.order-card,
+.empty-order-card {
+    background: #ffffff;
+
+    border: 1px solid #e2e2dc;
+    border-radius: 24px;
+
+    padding: 24px;
+
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.04);
+}
+
+.order-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding-bottom: 22px;
+    border-bottom: 1px solid #eeeeea;
+}
+
+.order-eyebrow {
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #e8544f;
+
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.order-card-heading h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.order-status {
+    background: #e8f2e9;
+    color: #287342;
+
+    border-radius: 999px;
+
+    padding: 7px 11px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.order-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 18px 0;
+
+    border-bottom: 1px solid #eeeeea;
+}
+
+.order-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-item-main strong {
+    font-size: 16px;
+}
+
+.order-item-main span {
+    color: #8a8a84;
+    font-size: 14px;
+}
+
+.order-item-price {
+    white-space: nowrap;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 24px 0;
+}
+
+.order-total span {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.order-total strong {
+    font-size: 24px;
+}
+
+.pay-button {
+    width: 100%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border: 0;
+    border-radius: 15px;
+
+    padding: 17px 20px;
+
+    background: #f1d900;
+    color: #111111;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.pay-button:hover {
+    filter: brightness(0.98);
+}
+
+.empty-order-card {
+    text-align: center;
+    padding: 48px 28px;
+}
+
+.empty-order-icon {
+    margin-bottom: 14px;
+    font-size: 34px;
+}
+
+.empty-order-card h2 {
+    margin: 0 0 10px;
+}
+
+.empty-order-card p {
+    max-width: 380px;
+
+    margin: 0 auto;
+
+    color: #808080;
+    line-height: 1.55;
+}
+
+.order-footer {
+    margin-top: 24px;
+
+    text-align: center;
+
+    color: #999999;
+    font-size: 13px;
+}
+
+.order-footer strong {
+    color: #111111;
+}
+
+.payment-success-card {
+    text-align: center;
+}
+
+.payment-success-icon {
+    width: 64px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 20px;
+
+    border-radius: 50%;
+
+    background: #e8f2e9;
+    color: #287342;
+
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.payment-success-amount {
+    display: block;
+
+    margin: 22px 0;
+
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.payment-success-page {
+    background: #ffffff;
+
+    border: 1px solid #e2e2dc;
+    border-radius: 24px;
+
+    padding: 48px 28px;
+
+    text-align: center;
+
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.04);
+}
+
+.payment-success-page h1 {
+    margin: 8px 0 10px;
+
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.payment-success-icon {
+    width: 64px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 20px;
+
+    border-radius: 50%;
+
+    background: #e8f2e9;
+    color: #287342;
+
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.payment-success-order-number {
+    margin: 0;
+
+    color: #888883;
+    font-size: 15px;
+}
+
+.payment-success-amount {
+    display: block;
+
+    margin: 26px 0 20px;
+
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.payment-success-message {
+    margin: 0;
+
+    color: #808080;
+    font-size: 15px;
+}
+
+.payment-success-details {
+    margin-top: 32px;
+    padding-top: 8px;
+
+    border-top: 1px solid #eeeeea;
+}
+
+.payment-success-detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid #eeeeea;
+}
+
+.payment-success-detail-row:last-child {
+    border-bottom: 0;
+}
+
+.payment-success-detail-row span {
+    color: #808080;
+    font-size: 14px;
+}
+
+.payment-success-detail-row strong {
+    font-size: 14px;
+}
+
+.payment-success-status {
+    color: #287342;
+}

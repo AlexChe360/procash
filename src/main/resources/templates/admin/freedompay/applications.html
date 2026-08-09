@@ -1,0 +1,275 @@
+<!doctype html>
+<html
+        lang="ru"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Заявки Freedom Pay — ProCash Admin</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+    >
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <a
+                    class="sidebar-logo"
+                    th:href="@{/admin}"
+            >
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/admin}"
+            >
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/admin/freedom-pay/applications}"
+            >
+                <span>Заявки Freedom Pay</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+
+            <div class="topbar-user">
+                <div class="user-meta">
+                    <strong>
+                        Администратор ProCash
+                    </strong>
+
+                    <span th:text="${email}">
+                        admin@procash.kz
+                    </span>
+                </div>
+            </div>
+
+        </header>
+
+        <main class="dashboard-content">
+
+            <section class="admin-page-heading">
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+                    <h1>
+                        Заявки на подключение
+                    </h1>
+
+                    <p>
+                        Проверяйте заявки ресторанов
+                        и отправляйте их в Freedom Pay.
+                    </p>
+                </div>
+
+            </section>
+
+            <section class="admin-stats-grid">
+
+                <article class="restaurant-overview-card">
+                    <span>На проверке ProCash</span>
+
+                    <strong
+                            th:text="${readyForReviewCount}"
+                    >
+                        0
+                    </strong>
+
+                    <small>
+                        Требуют проверки
+                    </small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>В Freedom Pay</span>
+
+                    <strong
+                            th:text="${underFreedomReviewCount}"
+                    >
+                        0
+                    </strong>
+
+                    <small>
+                        На рассмотрении
+                    </small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>Подключено</span>
+
+                    <strong
+                            th:text="${approvedCount}"
+                    >
+                        0
+                    </strong>
+
+                    <small>
+                        Одобрено
+                    </small>
+                </article>
+
+            </section>
+
+            <section class="restaurant-section">
+
+                <div class="restaurant-section-heading">
+                    <div>
+                        <span class="dashboard-eyebrow">
+                            Заявки
+                        </span>
+
+                        <h2>
+                            Все заявки
+                        </h2>
+                    </div>
+                </div>
+
+                <div
+                        class="admin-empty-state"
+                        th:if="${#lists.isEmpty(freedomApp)}"
+                >
+                    <strong>
+                        Заявок пока нет
+                    </strong>
+
+                    <p>
+                        Новые заявки ресторанов
+                        появятся здесь.
+                    </p>
+                </div>
+
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                        <tr>
+                            <th>Ресторан</th>
+                            <th>Компания</th>
+                            <th>БИН</th>
+                            <th>Статус</th>
+                            <th>ID заявки</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="freedomApp : ${freedomApp}">
+                            <td>
+                                <strong th:text="${freedomApp.restaurant.name}">
+                                    Caffe Time
+                                </strong>
+                            </td>
+
+                            <td
+                                    th:text="${freedomApp.companyName != null
+                    ? freedomApp.companyName
+                    : '—'}"
+                            >
+                                ИП Caffe Time
+                            </td>
+
+                            <td
+                                    th:text="${freedomApp.bin != null
+                    ? freedomApp.bin
+                    : '—'}"
+                            >
+                                123456789012
+                            </td>
+
+                            <td>
+                <span
+                        class="application-status-badge"
+                        th:classappend="${
+                        ' application-status-' +
+                        #strings.toLowerCase(
+                            freedomApp.status.name()
+                        )
+                    }"
+                        th:switch="${freedomApp.status.name()}"
+                >
+                    <span th:case="'DRAFT'">Черновик</span>
+                    <span th:case="'READY_FOR_REVIEW'">На проверке ProCash</span>
+                    <span th:case="'SUBMITTED_TO_FREEDOM'">Передано в Freedom Pay</span>
+                    <span th:case="'UNDER_FREEDOM_REVIEW'">На рассмотрении Freedom Pay</span>
+                    <span th:case="'NEEDS_CHANGES'">Требуются изменения</span>
+                    <span th:case="'APPROVED'">Подключено</span>
+                    <span th:case="'REJECTED'">Отклонено</span>
+                    <span th:case="*">Неизвестно</span>
+                </span>
+                            </td>
+
+                            <td class="admin-table-id">
+                <span th:text="${freedomApp.id}">
+                    UUID
+                </span>
+                            </td>
+
+                            <td class="admin-table-action">
+                                <a
+                                        class="admin-table-link"
+                                        th:href="@{
+                        /admin/freedom-pay/applications/{id}(
+                            id=${freedomApp.id}
+                        )
+                    }"
+                                >
+                                    Открыть
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Новый ресторан — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/dashboard}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Личный кабинет</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{/}"
+                    target="_blank"
+            >
+                Открыть сайт
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 17 17 7"/>
+                    <path d="M8 7h9v9"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content restaurant-form-page">
+
+            <a
+                    class="back-link"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"/>
+                    <path d="m10 17-5-5 5-5"/>
+                </svg>
+
+                Назад к ресторанам
+            </a>
+
+            <section class="dashboard-heading">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Новый ресторан
+                    </span>
+
+                    <h1>Добавьте ресторан</h1>
+
+                    <p>
+                        Укажите основную информацию. Подключение
+                        POS и Freedom Pay выполним следующим этапом.
+                    </p>
+                </div>
+            </section>
+
+            <section class="restaurant-form-card">
+                <form
+                        class="restaurant-form"
+                        th:action="@{/restaurants}"
+                        th:object="${restaurantForm}"
+                        method="post"
+                >
+                    <div class="form-section">
+                        <div class="form-section-heading">
+                            <h2>Основная информация</h2>
+
+                            <p>
+                                Эти данные будут отображаться
+                                в личном кабинете и на странице заказа.
+                            </p>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="name">
+                                Название ресторана
+                            </label>
+
+                            <input
+                                    id="name"
+                                    type="text"
+                                    th:field="*{name}"
+                                    placeholder="Например, ProCash Cafe"
+                                    autocomplete="organization"
+                                    th:classappend="${
+                                    #fields.hasErrors('name')
+                                } ? ' input-error' : ''"
+                            >
+
+                            <span
+                                    class="field-error"
+                                    th:if="${#fields.hasErrors('name')}"
+                                    th:errors="*{name}"
+                            >
+                                Ошибка названия
+                            </span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="slug">
+                                Адрес страницы
+                            </label>
+
+                            <div class="slug-field">
+                                <span>procash.kz/r/</span>
+
+                                <input
+                                        id="slug"
+                                        type="text"
+                                        th:field="*{slug}"
+                                        placeholder="procash-cafe"
+                                        autocomplete="off"
+                                        th:classappend="${
+                                        #fields.hasErrors('slug')
+                                    } ? ' input-error' : ''"
+                                >
+                            </div>
+
+                            <span class="field-hint">
+                                Только латинские буквы, цифры и дефисы.
+                            </span>
+
+                            <span
+                                    class="field-error"
+                                    th:if="${#fields.hasErrors('slug')}"
+                                    th:errors="*{slug}"
+                            >
+                                Ошибка адреса
+                            </span>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="description">
+                                Описание
+                            </label>
+
+                            <textarea
+                                    id="description"
+                                    th:field="*{description}"
+                                    rows="5"
+                                    placeholder="Краткое описание ресторана"
+                                    th:classappend="${
+                                    #fields.hasErrors('description')
+                                } ? ' input-error' : ''"
+                            ></textarea>
+
+                            <span
+                                    class="field-error"
+                                    th:if="${
+                                    #fields.hasErrors('description')
+                                }"
+                                    th:errors="*{description}"
+                            >
+                                Ошибка описания
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="form-divider"></div>
+
+                    <div class="form-section">
+                        <div class="form-section-heading">
+                            <h2>Контактные данные</h2>
+
+                            <p>
+                                Контакты можно будет изменить позже.
+                            </p>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="phone">
+                                    Телефон
+                                </label>
+
+                                <input
+                                        id="phone"
+                                        type="tel"
+                                        th:field="*{phone}"
+                                        placeholder="+7 700 000 00 00"
+                                        autocomplete="tel"
+                                        th:classappend="${
+                                        #fields.hasErrors('phone')
+                                    } ? ' input-error' : ''"
+                                >
+
+                                <span
+                                        class="field-error"
+                                        th:if="${#fields.hasErrors('phone')}"
+                                        th:errors="*{phone}"
+                                >
+                                    Ошибка телефона
+                                </span>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="city">
+                                    Город
+                                </label>
+
+                                <input
+                                        id="city"
+                                        type="text"
+                                        th:field="*{city}"
+                                        placeholder="Алматы"
+                                        autocomplete="address-level2"
+                                        th:classappend="${
+                                        #fields.hasErrors('city')
+                                    } ? ' input-error' : ''"
+                                >
+
+                                <span
+                                        class="field-error"
+                                        th:if="${#fields.hasErrors('city')}"
+                                        th:errors="*{city}"
+                                >
+                                    Ошибка города
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a
+                                class="cancel-button"
+                                th:href="@{/restaurants}"
+                        >
+                            Отмена
+                        </a>
+
+                        <button
+                                class="primary-button"
+                                type="submit"
+                        >
+                            Создать ресторан
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Рестораны — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/dashboard}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M3 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 10a3 3 0 0 0 6 0"/>
+                    <path d="M15 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+          
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Личный кабинет</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{/}"
+                    target="_blank"
+            >
+                Открыть сайт
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 17 17 7"/>
+                    <path d="M8 7h9v9"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content">
+
+            <section class="dashboard-heading">
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Управление
+                    </span>
+
+                    <h1>Рестораны</h1>
+
+                    <p>
+                        Добавляйте рестораны, подключайте POS-системы
+                        и настраивайте приём платежей.
+                    </p>
+                </div>
+
+                <a
+                        class="primary-button"
+                        th:href="@{/restaurants/new}"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5v14"/>
+                        <path d="M5 12h14"/>
+                    </svg>
+
+                    Добавить ресторан
+                </a>
+            </section>
+
+            <div
+                    class="page-message page-message-success"
+                    th:if="${restaurantCreated}"
+            >
+                Ресторан успешно создан.
+            </div>
+            <div
+                    class="page-message page-message-error"
+                    th:if="${restaurantNotFound}"
+            >
+                Ресторан не найден или у вас нет доступа.
+            </div>
+            <section
+                    class="restaurants-empty"
+                    th:if="${#lists.isEmpty(restaurants)}"
+            >
+                <div class="restaurants-empty-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 10v10h16V10"/>
+                        <path d="M3 10 5 4h14l2 6"/>
+                        <path d="M9 20v-5h6v5"/>
+                    </svg>
+                </div>
+
+                <h2>Ресторанов пока нет</h2>
+
+                <p>
+                    Создайте первый ресторан, чтобы подключить
+                    POS-систему и интернет-эквайринг.
+                </p>
+
+                <a
+                        class="primary-button"
+                        th:href="@{/restaurants/new}"
+                >
+                    Добавить ресторан
+                </a>
+            </section>
+
+            <section
+                    class="restaurants-grid"
+                    th:unless="${#lists.isEmpty(restaurants)}"
+            >
+                <article
+                        class="restaurant-card"
+                        th:each="restaurant : ${restaurants}"
+                >
+                    <div class="restaurant-card-header">
+                        <div class="restaurant-logo">
+                            <span
+                                    th:text="${#strings.toUpperCase(
+                                    #strings.substring(
+                                        restaurant.name,
+                                        0,
+                                        1
+                                    )
+                                )}"
+                            >
+                                R
+                            </span>
+                        </div>
+
+                        <span
+                                class="restaurant-status"
+                                th:classappend="${
+                                restaurant.status.name() == 'ACTIVE'
+                            } ? ' restaurant-status-active' : ''"
+                                th:text="${
+                                restaurant.status.name() == 'ACTIVE'
+                                    ? 'Активен'
+                                    : 'Черновик'
+                            }"
+                        >
+                            Черновик
+                        </span>
+                    </div>
+
+                    <h2 th:text="${restaurant.name}">
+                        ProCash Cafe
+                    </h2>
+
+                    <p
+                            class="restaurant-description"
+                            th:text="${
+                            restaurant.description != null
+                                ? restaurant.description
+                                : 'Описание не указано'
+                        }"
+                    >
+                        Описание ресторана
+                    </p>
+
+                    <div class="restaurant-meta">
+                        <div>
+                            <span>Город</span>
+
+                            <strong
+                                    th:text="${
+                                    restaurant.city != null
+                                        ? restaurant.city
+                                        : 'Не указан'
+                                }"
+                            >
+                                Алматы
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Адрес страницы</span>
+
+                            <strong
+                                    th:text="'/r/' + ${restaurant.slug}"
+                            >
+                                /r/procash-cafe
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="restaurant-card-footer">
+                        <a
+                                class="restaurant-action"
+                                th:href="@{
+                                /restaurants/{id}(id=${restaurant.id})
+                            }"
+                        >
+                            Открыть ресторан
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14"/>
+                                <path d="m14 7 5 5-5 5"/>
+                            </svg>
+                        </a>
+                    </div>
+                </article>
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

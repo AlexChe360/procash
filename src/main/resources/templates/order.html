@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Ваш заказ — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/order.css}"
+    >
+</head>
+
+<body>
+<main class="page">
+    <header class="restaurant-header">
+        <h1
+                class="restaurant-name"
+                th:text="${order.restaurantName}"
+        >
+            Название ресторана
+        </h1>
+
+        <p class="table-number">
+            Стол №
+            <span th:text="${order.tableNumber}">0</span>
+        </p>
+    </header>
+
+    <section
+            class="card"
+            th:if="${order.waiterName != null}"
+    >
+        <p class="waiter">
+            Вас обслуживает:
+            <strong th:text="${order.waiterName}">
+                Официант
+            </strong>
+        </p>
+    </section>
+
+    <section class="card">
+        <h2 class="card-title">Ваш заказ</h2>
+
+        <ul class="order-list">
+            <li
+                    class="order-item"
+                    th:each="item : ${order.items}"
+            >
+                <div class="item-info">
+                    <span
+                            class="item-name"
+                            th:text="${item.name}"
+                    >
+                        Название блюда
+                    </span>
+
+                    <span class="item-calculation">
+                        <span th:text="${item.quantity}">1</span>
+                        ×
+                        <span th:text="${item.unitPrice}">0</span>
+                        ₸
+                    </span>
+                </div>
+
+                <span class="item-total">
+                    <span th:text="${item.totalPrice}">0</span>
+                    ₸
+                </span>
+            </li>
+        </ul>
+
+        <div class="order-total">
+            <span>Итого</span>
+
+            <span>
+                <span th:text="${order.totalAmount}">0</span>
+                ₸
+            </span>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2 class="card-title">Оплата заказа</h2>
+
+        <p class="payment-description">
+            После нажатия вы перейдёте на защищённую страницу оплаты.
+        </p>
+
+        <form
+                method="post"
+                th:action="@{/payments}"
+        >
+            <input
+                    type="hidden"
+                    name="restaurantId"
+                    th:value="${order.restaurantId}"
+            >
+
+            <input
+                    type="hidden"
+                    name="tableNumber"
+                    th:value="${order.tableNumber}"
+            >
+
+            <button
+                    type="submit"
+                    class="button button-payment"
+            >
+                Оплатить
+                &nbsp;<span th:text="${order.totalAmount}">0</span>
+                ₸
+            </button>
+        </form>
+    </section>
+
+    <footer class="brand">
+        Оплата заказа через <strong>ProCash</strong>
+    </footer>
+</main>
+</body>
+</html>

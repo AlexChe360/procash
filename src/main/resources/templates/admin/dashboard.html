@@ -1,0 +1,120 @@
+<!doctype html>
+<html
+        lang="ru"
+        xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Администрирование — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+    >
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <a
+                    class="sidebar-logo"
+                    th:href="@{/admin}"
+            >
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/admin}"
+            >
+                <span>
+                    Главная
+                </span>
+            </a>
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/admin/freedom-pay/applications}"
+            >
+                <span>
+                    Заявки Freedom Pay
+                </span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <span>Выйти</span>
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <div class="app-main">
+
+        <header class="topbar">
+
+            <div class="topbar-user">
+
+                <div class="user-meta">
+                    <strong>
+                        Администратор ProCash
+                    </strong>
+
+                    <span th:text="${email}">
+                        admin@procash.kz
+                    </span>
+                </div>
+
+            </div>
+
+        </header>
+
+        <main class="dashboard-content">
+
+            <span class="dashboard-eyebrow">
+                ProCash Admin
+            </span>
+
+            <h1>
+                Панель управления
+            </h1>
+
+            <p>
+                Управление ресторанами,
+                заявками и подключениями.
+            </p>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

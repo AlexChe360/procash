@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+  >
+
+  <title>Проверка заявки — Freedom Pay — ProCash</title>
+
+  <link
+          rel="stylesheet"
+          th:href="@{/css/dashboard.css}"
+          href="/css/dashboard.css"
+  >
+</head>
+
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" th:href="@{/dashboard}">
+        Pro<span>Cash</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-navigation">
+      <a
+              class="sidebar-link"
+              th:href="@{/dashboard}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+                  d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+          />
+        </svg>
+
+        <span>Главная</span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-active"
+              th:href="@{/restaurants}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 10v10h16V10"/>
+          <path d="M3 10 5 4h14l2 6"/>
+          <path d="M9 20v-5h6v5"/>
+        </svg>
+
+        <span>Рестораны</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <form
+              class="logout-form"
+              th:action="@{/logout}"
+              method="post"
+      >
+        <button
+                class="sidebar-link logout-button"
+                type="submit"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 5H5v14h5"/>
+            <path d="m14 8 4 4-4 4"/>
+            <path d="M8 12h10"/>
+          </svg>
+
+          <span>Выйти</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <header class="topbar">
+      <button
+              class="mobile-menu-button"
+              type="button"
+              aria-label="Открыть меню"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="topbar-user">
+        <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+        </div>
+
+        <div class="user-meta">
+          <strong>Подключение Freedom Pay</strong>
+
+          <span th:text="${email}">
+                        user@example.com
+                    </span>
+        </div>
+      </div>
+
+      <a
+              class="topbar-site-link"
+              th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+      >
+        Закрыть
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18"/>
+          <path d="m6 6 12 12"/>
+        </svg>
+      </a>
+    </header>
+
+    <main class="dashboard-content freedom-wizard-page">
+
+      <a
+              class="back-link"
+              th:href="@{
+                    /restaurants/{id}/payments/freedom-pay/restaurant(
+                        id=${restaurant.id}
+                    )
+                }"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <path d="m10 17-5-5 5-5"/>
+        </svg>
+
+        Назад к данным ресторана
+      </a>
+
+      <section class="wizard-heading">
+        <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+          <h1>Проверьте заявку</h1>
+
+          <p>
+            Проверьте введённые данные перед отправкой.
+            После отправки заявка перейдёт на рассмотрение.
+          </p>
+        </div>
+
+        <div class="wizard-restaurant">
+          <span>Ресторан</span>
+
+          <strong th:text="${restaurant.name}">
+            ProCash Cafe
+          </strong>
+        </div>
+      </section>
+
+      <nav class="wizard-progress">
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/company(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Компания</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/director(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Руководитель</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/address(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Адрес</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/bank(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Банк</strong>
+        </a>
+
+        <a
+                class="wizard-step wizard-step-completed"
+                th:href="@{
+                        /restaurants/{id}/payments/freedom-pay/restaurant(
+                            id=${restaurant.id}
+                        )
+                    }"
+        >
+          <span>✓</span>
+          <strong>Ресторан</strong>
+        </a>
+
+        <div class="wizard-step wizard-step-active">
+          <span>6</span>
+          <strong>Проверка</strong>
+        </div>
+      </nav>
+
+      <div
+              class="page-message page-message-error"
+              th:unless="${readyToSubmit}"
+      >
+        Некоторые обязательные поля не заполнены.
+        Вернитесь к предыдущим шагам и проверьте данные.
+      </div>
+
+      <section class="review-grid">
+
+        <article class="review-card">
+          <div class="review-card-heading">
+            <div>
+              <span>Шаг 1</span>
+              <h2>Компания</h2>
+            </div>
+
+            <a
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/company(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Изменить
+            </a>
+          </div>
+
+          <dl class="review-list">
+            <div>
+              <dt>Форма организации</dt>
+              <dd th:text="${freedomPayApplication.organizationType}">
+                TOO
+              </dd>
+            </div>
+
+            <div>
+              <dt>Наименование</dt>
+              <dd th:text="${freedomPayApplication.companyName}">
+                ТОО ProCash
+              </dd>
+            </div>
+
+            <div>
+              <dt>БИН / ИИН</dt>
+              <dd th:text="${freedomPayApplication.bin}">
+                123456789012
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="review-card">
+          <div class="review-card-heading">
+            <div>
+              <span>Шаг 2</span>
+              <h2>Руководитель</h2>
+            </div>
+
+            <a
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/director(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Изменить
+            </a>
+          </div>
+
+          <dl class="review-list">
+            <div>
+              <dt>ФИО</dt>
+              <dd th:text="${freedomPayApplication.directorName}">
+                Иванов Иван Иванович
+              </dd>
+            </div>
+
+            <div>
+              <dt>ИИН</dt>
+              <dd th:text="${freedomPayApplication.directorIin}">
+                123456789012
+              </dd>
+            </div>
+
+            <div>
+              <dt>Телефон</dt>
+              <dd th:text="${freedomPayApplication.directorPhone}">
+                +7 700 000 00 00
+              </dd>
+            </div>
+
+            <div>
+              <dt>Email</dt>
+              <dd th:text="${freedomPayApplication.directorEmail}">
+                director@example.com
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="review-card">
+          <div class="review-card-heading">
+            <div>
+              <span>Шаг 3</span>
+              <h2>Юридический адрес</h2>
+            </div>
+
+            <a
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/address(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Изменить
+            </a>
+          </div>
+
+          <dl class="review-list">
+            <div>
+              <dt>Адрес</dt>
+              <dd th:text="${freedomPayApplication.legalAddress}">
+                Проспект Абая, 10
+              </dd>
+            </div>
+
+            <div>
+              <dt>Город</dt>
+              <dd th:text="${freedomPayApplication.city}">
+                Алматы
+              </dd>
+            </div>
+
+            <div>
+              <dt>Индекс</dt>
+              <dd th:text="${freedomPayApplication.postalCode}">
+                050000
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="review-card">
+          <div class="review-card-heading">
+            <div>
+              <span>Шаг 4</span>
+              <h2>Банк</h2>
+            </div>
+
+            <a
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/bank(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Изменить
+            </a>
+          </div>
+
+          <dl class="review-list">
+            <div>
+              <dt>IBAN</dt>
+              <dd th:text="${freedomPayApplication.iban}">
+                KZ000000000000000000
+              </dd>
+            </div>
+
+            <div>
+              <dt>Банк</dt>
+              <dd th:text="${freedomPayApplication.bankName}">
+                Freedom Bank
+              </dd>
+            </div>
+
+            <div>
+              <dt>БИК</dt>
+              <dd th:text="${freedomPayApplication.bankBic}">
+                KSNVKZKA
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="review-card review-card-wide">
+          <div class="review-card-heading">
+            <div>
+              <span>Шаг 5</span>
+              <h2>Ресторан</h2>
+            </div>
+
+            <a
+                    th:href="@{
+                                /restaurants/{id}/payments/freedom-pay/restaurant(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Изменить
+            </a>
+          </div>
+
+          <dl class="review-list">
+            <div>
+              <dt>Сайт</dt>
+              <dd th:text="${freedomPayApplication.websiteUrl}">
+                https://procash.kz
+              </dd>
+            </div>
+
+            <div>
+              <dt>Категория</dt>
+              <dd th:text="${freedomPayApplication.businessCategory}">
+                RESTAURANT
+              </dd>
+            </div>
+
+            <div>
+              <dt>Средний чек</dt>
+              <dd>
+                                <span
+                                        th:text="${freedomPayApplication.averageCheck}"
+                                >
+                                    10000
+                                </span>
+                ₸
+              </dd>
+            </div>
+
+            <div>
+              <dt>Оборот в месяц</dt>
+              <dd>
+                                <span
+                                        th:text="${
+                                        freedomPayApplication.expectedMonthlyTurnover
+                                    }"
+                                >
+                                    5000000
+                                </span>
+                ₸
+              </dd>
+            </div>
+
+            <div class="review-description">
+              <dt>Описание деятельности</dt>
+              <dd
+                      th:text="${freedomPayApplication.businessDescription}"
+              >
+                Ресторан принимает оплату по QR-коду.
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+      </section>
+
+      <section class="submit-card">
+        <div>
+                    <span class="dashboard-eyebrow">
+                        Отправка
+                    </span>
+
+          <h2>Заявка готова к отправке</h2>
+
+          <p>
+            После отправки данные будут переданы
+            на проверку в Freedom Pay.
+          </p>
+        </div>
+
+        <form
+                th:action="@{
+                        /restaurants/{id}/payments/freedom-pay/submit(
+                            id=${restaurant.id}
+                        )
+                    }"
+                method="post"
+        >
+          <label class="submit-confirmation">
+            <input
+                    id="submitConfirmation"
+                    type="checkbox"
+            >
+            <span>
+                Я проверил данные и подтверждаю их корректность
+            </span>
+          </label>
+          <button
+                  id="submitButton"
+                  class="primary-button"
+                  type="submit"
+                  disabled
+          >
+            Отправить заявку
+
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14"/>
+              <path d="m14 7 5 5-5 5"/>
+            </svg>
+          </button>
+        </form>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const confirmation =
+            document.querySelector("#submitConfirmation");
+
+    const submitButton =
+            document.querySelector("#submitButton");
+
+    if (!confirmation || !submitButton) {
+      return;
+    }
+
+    confirmation.addEventListener("change", () => {
+      submitButton.disabled =
+              !confirmation.checked;
+    });
+  });
+</script>
+</body>
+</html>

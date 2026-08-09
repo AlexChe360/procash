@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+  >
+
+  <title>Вход — ProCash</title>
+
+  <link
+          rel="stylesheet"
+          th:href="@{/css/auth.css}"
+          href="/css/auth.css"
+  >
+</head>
+
+<body>
+<main class="auth-page">
+  <a class="auth-logo" th:href="@{/}">
+    Pro<span>Cash</span>
+  </a>
+
+  <section class="auth-card">
+    <header class="auth-header">
+            <span class="auth-label">
+                Личный кабинет
+            </span>
+
+      <h1>Войдите в ProCash</h1>
+
+      <p>
+        Управляйте ресторанами, платежами
+        и подключением Freedom Pay.
+      </p>
+    </header>
+
+    <div
+            class="auth-message auth-message-error"
+            th:if="${param.error}"
+    >
+      Неверный email или пароль
+    </div>
+
+    <div
+            class="auth-message auth-message-success"
+            th:if="${param.registered}"
+    >
+      Аккаунт создан. Теперь войдите в систему.
+    </div>
+
+    <div
+            class="auth-message auth-message-success"
+            th:if="${param.logout}"
+    >
+      Вы успешно вышли из аккаунта.
+    </div>
+
+    <form
+            class="auth-form"
+            th:action="@{/login}"
+            method="post"
+    >
+      <div class="form-field">
+        <label for="email">
+          Email
+        </label>
+
+        <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="name@example.com"
+                required
+                autofocus
+        >
+      </div>
+
+      <div class="form-field">
+        <div class="field-header">
+          <label for="password">
+            Пароль
+          </label>
+
+          <a href="#">
+            Забыли пароль?
+          </a>
+        </div>
+
+        <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Введите пароль"
+                required
+        >
+      </div>
+
+      <button
+              class="auth-button"
+              type="submit"
+      >
+        Войти
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Нет аккаунта?
+
+      <a th:href="@{/register}">
+        Зарегистрироваться
+      </a>
+    </p>
+  </section>
+
+  <p class="auth-footer">
+    © 2026 ProCash
+  </p>
+</main>
+</body>
+</html>

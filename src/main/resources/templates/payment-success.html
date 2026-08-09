@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+  >
+
+  <title>Оплата прошла успешно — ProCash</title>
+
+  <link
+          rel="stylesheet"
+          th:href="@{/css/order.css}"
+  >
+</head>
+
+<body>
+<main class="page">
+  <section class="card payment-result">
+    <div class="payment-result-icon">✓</div>
+
+    <h1 class="payment-result-title">
+      Оплата прошла успешно
+    </h1>
+
+    <p class="payment-result-description">
+      Сейчас используется тестовый платёжный провайдер.
+      Деньги не списывались.
+    </p>
+
+    <div class="order-total">
+      <span>Оплачено</span>
+
+      <span>
+                <span th:text="${amount}">0</span>
+                <span th:text="${currency}">KZT</span>
+            </span>
+    </div>
+
+    <p class="payment-id">
+      ID платежа:
+      <span th:text="${paymentId}">payment-id</span>
+    </p>
+
+    <a
+            class="button button-payment"
+            th:href="@{/order(
+                restaurantId=${restaurantId},
+                tableNumber=${tableNumber}
+            )}"
+    >
+      Вернуться к заказу
+    </a>
+  </section>
+
+  <footer class="brand">
+    Оплата заказа через <strong>ProCash</strong>
+  </footer>
+</main>
+</body>
+</html>

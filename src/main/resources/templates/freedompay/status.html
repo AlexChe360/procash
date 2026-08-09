@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Статус заявки Freedom Pay — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-logo" th:href="@{/dashboard}">
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+            <a class="sidebar-link" th:href="@{/dashboard}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+
+                <span>Рестораны</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M10 5H5v14h5"/>
+                        <path d="m14 8 4 4-4 4"/>
+                        <path d="M8 12h10"/>
+                    </svg>
+
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="app-main">
+        <header class="topbar">
+            <div class="topbar-user">
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Freedom Pay</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+            </div>
+
+            <a
+                    class="topbar-site-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                Закрыть
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M18 6 6 18"/>
+                    <path d="m6 6 12 12"/>
+                </svg>
+            </a>
+        </header>
+
+        <main class="dashboard-content freedom-status-page">
+
+            <a
+                    class="back-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19 12H5"/>
+                    <path d="m10 17-5-5 5-5"/>
+                </svg>
+
+                Назад к ресторану
+            </a>
+
+            <div
+                    class="page-message page-message-success"
+                    th:if="${param.submitted}"
+            >
+                Заявка успешно отправлена.
+            </div>
+
+            <section class="status-hero">
+                <div
+                        class="status-hero-icon"
+                        th:classappend="${
+                        freedomPayApplication.status.name() == 'APPROVED'
+                    } ? ' status-hero-icon-success' : ''"
+                >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 8v4l3 2"/>
+                        <circle cx="12" cy="12" r="9"/>
+                    </svg>
+                </div>
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Freedom Pay
+                    </span>
+
+                    <h1>Статус заявки</h1>
+
+                    <p>
+                        Следите за этапами подключения Freedom Pay.
+                    </p>
+                </div>
+            </section>
+
+            <div
+                    class="page-message page-message-error"
+                    th:if="${freedomPayApplication.status.name() == 'REJECTED'}"
+            >
+                <strong>
+                    Заявка отклонена Freedom Pay
+                </strong>
+
+                <p
+                        th:text="${freedomPayApplication.reviewComment != null
+                        ? freedomPayApplication.reviewComment
+                        : 'Свяжитесь с поддержкой ProCash для уточнения причины отказа.'}"
+                >
+                    Причина отказа
+                </p>
+            </div>
+
+            <div
+                    class="page-message page-message-warning"
+                    th:if="${freedomPayApplication.status.name() == 'NEEDS_CHANGES'}"
+            >
+                <strong>
+                    Необходимо исправить заявку
+                </strong>
+
+                <p
+                        th:text="${freedomPayApplication.reviewComment}"
+                >
+                    Комментарий ProCash
+                </p>
+            </div>
+
+            <section class="status-card">
+
+                <div class="status-timeline">
+
+                    <div class="status-timeline-item status-timeline-completed">
+                        <span></span>
+
+                        <div>
+                            <strong>Заявка заполнена</strong>
+                            <small>Данные ресторана заполнены</small>
+                        </div>
+                    </div>
+
+                    <div
+                            class="status-timeline-item"
+                            th:classappend="${
+                                freedomPayApplication.status.name() == 'READY_FOR_REVIEW'
+                                    ? ' status-timeline-current'
+                                : (
+                                    freedomPayApplication.status.name() == 'SUBMITTED_TO_FREEDOM'
+                                    or freedomPayApplication.status.name() == 'UNDER_FREEDOM_REVIEW'
+                                    or freedomPayApplication.status.name() == 'APPROVED'
+                                    or freedomPayApplication.status.name() == 'REJECTED'
+                                )
+                                    ? ' status-timeline-completed'
+                                    : ''
+                            }"
+                    >
+                        <span></span>
+
+                        <div>
+                            <strong>Проверка ProCash</strong>
+                            <small>Проверяем данные перед отправкой</small>
+                        </div>
+                    </div>
+
+                    <div
+                            class="status-timeline-item"
+                            th:classappend="${
+                                freedomPayApplication.status.name() == 'SUBMITTED_TO_FREEDOM'
+                                    ? ' status-timeline-current'
+                                : (
+                                    freedomPayApplication.status.name() == 'UNDER_FREEDOM_REVIEW'
+                                    or freedomPayApplication.status.name() == 'APPROVED'
+                                    or freedomPayApplication.status.name() == 'REJECTED'
+                                )
+                                    ? ' status-timeline-completed'
+                                    : ''
+                            }"
+                    >
+                        <span></span>
+
+                        <div>
+                            <strong>Передача в Freedom Pay</strong>
+                            <small>Заявка передана на подключение</small>
+                        </div>
+                    </div>
+
+                    <div
+                            class="status-timeline-item"
+                            th:classappend="${
+                                freedomPayApplication.status.name() == 'UNDER_FREEDOM_REVIEW'
+                                    ? ' status-timeline-current'
+                                : freedomPayApplication.status.name() == 'APPROVED'
+                                    ? ' status-timeline-completed'
+                                : freedomPayApplication.status.name() == 'REJECTED'
+                                    ? ' status-timeline-rejected'
+                                : ''
+                            }"
+                    >
+                        <span></span>
+
+                        <div>
+                            <strong
+                                    th:text="${
+                                    freedomPayApplication.status.name() == 'REJECTED'
+                                        ? 'Заявка отклонена'
+                                        : 'Рассмотрение Freedom Pay'
+                                }"
+                            >
+                                Рассмотрение Freedom Pay
+                            </strong>
+
+                            <small
+                                    th:text="${
+                    freedomPayApplication.status.name() == 'REJECTED'
+                        ? 'Freedom Pay отклонил заявку'
+                        : 'Freedom Pay проверяет заявку'
+                }"
+                            >
+                                Freedom Pay проверяет заявку
+                            </small>
+                        </div>
+                    </div>
+
+                    <div
+                            class="status-timeline-item"
+                            th:classappend="${
+            freedomPayApplication.status.name() == 'APPROVED'
+                ? ' status-timeline-completed'
+                : ''
+        }"
+                    >
+                        <span></span>
+
+                        <div>
+                            <strong>Подключение</strong>
+                            <small>Приём платежей активирован</small>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="status-details">
+                    <div>
+                        <span>Ресторан</span>
+
+                        <strong th:text="${restaurant.name}">
+                            ProCash Cafe
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>ID заявки</span>
+
+                        <strong th:text="${freedomPayApplication.id}">
+                            UUID
+                        </strong>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title
+            th:text="${restaurant.name + ' — Стол ' + table.tableNumber}"
+    >
+        Заказ — ProCash
+    </title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/public-order.css}"
+            href="/css/public-order.css"
+    >
+</head>
+
+<body>
+
+<main class="order-page">
+
+    <section class="order-header">
+
+        <div class="restaurant-logo">
+            <span
+                    th:text="${#strings.toUpperCase(
+                    #strings.substring(
+                        restaurant.name,
+                        0,
+                        1
+                    )
+                )}"
+            >
+                R
+            </span>
+        </div>
+
+        <div>
+            <h1 th:text="${restaurant.name}">
+                Caffe Time
+            </h1>
+
+            <p th:text="'Стол ' + ${table.tableNumber}">
+                Стол 1
+            </p>
+        </div>
+
+    </section>
+
+    <div
+            class="payment-error-message"
+            th:if="${paymentFailed}"
+    >
+        <strong>
+            Оплата не прошла
+        </strong>
+
+        <p>
+            Попробуйте оплатить заказ ещё раз.
+        </p>
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- OPEN ORDER -->
+    <!-- ========================= -->
+
+    <section
+            class="order-card"
+            th:if="${order != null and order.status.name() == 'OPEN'}"
+    >
+
+        <div class="order-card-heading">
+
+            <div>
+                <span class="order-eyebrow">
+                    Ваш заказ
+                </span>
+
+                <h2
+                        th:text="'Заказ № ' + ${order.orderNumber}"
+                >
+                    Заказ № TEST-001
+                </h2>
+            </div>
+
+            <span class="order-status">
+                Открыт
+            </span>
+
+        </div>
+
+        <div class="order-items">
+
+            <div
+                    class="order-item"
+                    th:each="item : ${order.items}"
+            >
+
+                <div class="order-item-main">
+
+                    <strong th:text="${item.name}">
+                        Капучино
+                    </strong>
+
+                    <span
+                            th:text="${item.quantity + ' × ' + item.unitPrice + ' ₸'}"
+                    >
+                        2 × 1 500 ₸
+                    </span>
+
+                </div>
+
+                <strong
+                        class="order-item-price"
+                        th:text="${item.totalPrice + ' ₸'}"
+                >
+                    3 000 ₸
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div class="order-total">
+
+            <span>
+                Итого
+            </span>
+
+            <strong th:text="${order.totalAmount + ' ₸'}">
+                14 700 ₸
+            </strong>
+
+        </div>
+
+        <form
+                th:action="@{/payments/create}"
+                method="post"
+        >
+            <input
+                    type="hidden"
+                    name="orderId"
+                    th:value="${order.id}"
+            >
+
+            <button
+                    class="pay-button"
+                    type="submit"
+            >
+                <span>
+                    Оплатить
+                </span>
+
+                <span th:text="${order.totalAmount + ' ₸'}">
+                    14 700 ₸
+                </span>
+            </button>
+        </form>
+
+    </section>
+
+
+    <!-- ========================= -->
+    <!-- PAID ORDER -->
+    <!-- ========================= -->
+
+    <section
+            class="empty-order-card payment-success-card"
+            th:if="${order != null and order.status.name() == 'PAID'}"
+    >
+
+        <div class="payment-success-icon">
+            ✓
+        </div>
+
+        <span class="order-eyebrow">
+            Оплата завершена
+        </span>
+
+        <h2>
+            Заказ оплачен
+        </h2>
+
+        <p
+                class="payment-success-order-number"
+                th:text="'Заказ № ' + ${order.orderNumber}"
+        >
+            Заказ № TEST-001
+        </p>
+
+        <strong
+                class="payment-success-amount"
+                th:text="${order.totalAmount + ' ₸'}"
+        >
+            14 700 ₸
+        </strong>
+
+        <p class="payment-success-message">
+            Спасибо! Платёж успешно принят.
+        </p>
+
+    </section>
+
+
+    <!-- ========================= -->
+    <!-- NO ORDER -->
+    <!-- ========================= -->
+
+    <section
+            class="empty-order-card"
+            th:if="${order == null}"
+    >
+
+        <div class="empty-order-icon">
+            ⏱
+        </div>
+
+        <h2>
+            Заказ пока не найден
+        </h2>
+
+        <p>
+            Если вы только что сделали заказ,
+            обновите страницу через несколько секунд.
+        </p>
+
+    </section>
+
+
+    <footer class="order-footer">
+        Powered by <strong>ProCash</strong>
+    </footer>
+
+</main>
+
+</body>
+</html>

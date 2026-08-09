@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <title>Платежи — ProCash</title>
+
+    <link
+            rel="stylesheet"
+            th:href="@{/css/dashboard.css}"
+            href="/css/dashboard.css"
+    >
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <a
+                    class="sidebar-logo"
+                    th:href="@{/dashboard}"
+            >
+                Pro<span>Cash</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-navigation">
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/dashboard}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                            d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+                    />
+                </svg>
+                <span>Главная</span>
+            </a>
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/restaurants}"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10v10h16V10"/>
+                    <path d="M3 10 5 4h14l2 6"/>
+                    <path d="M3 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 10a3 3 0 0 0 6 0"/>
+                    <path d="M15 10a3 3 0 0 0 6 0"/>
+                    <path d="M9 20v-5h6v5"/>
+                </svg>
+                <span>Рестораны</span>
+            </a>
+
+            <a
+                    class="sidebar-link"
+                    th:href="@{/restaurants/{id}/orders(id=${restaurant.id})}"
+            >
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6 7h12l1 14H5z"/>
+                    <path d="M9 7a3 3 0 0 1 6 0"/>
+                </svg>
+                <span>Заказы</span>
+            </a>
+
+            <a
+                    class="sidebar-link sidebar-link-active"
+                    th:href="@{
+                    /restaurants/{id}/payments(
+                        id=${restaurant.id}
+                    )
+                }"
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect
+                            x="3"
+                            y="5"
+                            width="18"
+                            height="14"
+                            rx="3"
+                    />
+                    <path d="M3 9h18"/>
+                    <path d="M7 15h4"/>
+                </svg>
+                <span>Платежи</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <form
+                    class="logout-form"
+                    th:action="@{/logout}"
+                    method="post"
+            >
+                <button
+                        class="sidebar-link logout-button"
+                        type="submit"
+                >
+                    <span>Выйти</span>
+                </button>
+            </form>
+        </div>
+
+    </aside>
+
+
+    <div class="app-main">
+
+        <header class="topbar">
+
+            <div class="topbar-user">
+
+                <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+                </div>
+
+                <div class="user-meta">
+                    <strong>Личный кабинет</strong>
+
+                    <span th:text="${email}">
+                        user@example.com
+                    </span>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <main class="dashboard-content">
+
+            <a
+                    class="back-link"
+                    th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+            >
+                ← Назад к ресторану
+            </a>
+
+
+            <section class="restaurant-page-heading">
+
+                <div>
+                    <span class="dashboard-eyebrow">
+                        Платежи
+                    </span>
+
+                    <h1>
+                        История платежей
+                    </h1>
+
+                    <p th:text="${restaurant.name}">
+                        Caffe Time
+                    </p>
+                </div>
+
+            </section>
+
+
+            <section class="payments-stats">
+
+                <article class="restaurant-overview-card">
+                    <span>Всего попыток</span>
+
+                    <strong th:text="${#lists.size(payments)}">
+                        0
+                    </strong>
+
+                    <small>
+                        Все операции оплаты
+                    </small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>Успешных</span>
+
+                    <strong
+                            th:text="${
+                            #lists.size(
+                                payments.?[
+                                    status.name() == 'PAID'
+                                ]
+                            )
+                        }"
+                    >
+                        0
+                    </strong>
+
+                    <small>
+                        Завершённых платежей
+                    </small>
+                </article>
+
+                <article class="restaurant-overview-card">
+                    <span>Ошибок</span>
+
+                    <strong
+                            th:text="${
+                            #lists.size(
+                                payments.?[
+                                    status.name() == 'FAILED'
+                                ]
+                            )
+                        }"
+                    >
+                        0
+                    </strong>
+
+                    <small>
+                        Неуспешных попыток
+                    </small>
+                </article>
+
+            </section>
+
+
+            <section class="restaurant-section">
+
+                <div class="restaurant-section-heading">
+
+                    <div>
+                        <span class="dashboard-eyebrow">
+                            Операции
+                        </span>
+
+                        <h2>
+                            Все платежи
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div
+                        class="restaurant-info-card"
+                        th:if="${#lists.isEmpty(payments)}"
+                >
+                    Платежей пока нет.
+                </div>
+
+
+                <div
+                        class="payments-table-wrapper"
+                        th:if="${!#lists.isEmpty(payments)}"
+                >
+
+                    <table class="payments-table">
+
+                        <thead>
+
+                        <tr>
+                            <th>Заказ</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Провайдер</th>
+                            <th>Дата</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="paymentItem : ${payments}">
+
+                            <td>
+                                <strong
+                                        th:text="${paymentItem.order != null
+                                        ? paymentItem.order.orderNumber
+                                        : '—'}"
+                                >
+                                    TEST-001
+                                </strong>
+                            </td>
+
+                            <td
+                                    class="payment-amount"
+                                    th:text="${paymentItem.amount + ' ₸'}"
+                            >
+                                14 700 ₸
+                            </td>
+
+                            <td>
+
+                                <span
+                                        class="payment-status"
+                                        th:classappend="${
+                                        paymentItem.status.name() == 'PAID'
+                                            ? ' payment-status-paid'
+                                            : paymentItem.status.name() == 'FAILED'
+                                                ? ' payment-status-failed'
+                                                : ' payment-status-pending'
+                                    }"
+                                        th:switch="${paymentItem.status.name()}"
+                                >
+
+                                    <span th:case="'CREATED'">
+                                        Создан
+                                    </span>
+
+                                    <span th:case="'PENDING'">
+                                        Ожидает оплаты
+                                    </span>
+
+                                    <span th:case="'PAID'">
+                                        Оплачен
+                                    </span>
+
+                                    <span th:case="'FAILED'">
+                                        Ошибка
+                                    </span>
+
+                                    <span th:case="'CANCELLED'">
+                                        Отменён
+                                    </span>
+
+                                </span>
+
+                            </td>
+
+                            <td>
+                                Freedom Pay
+                            </td>
+
+                            <td th:text="${paymentItem.createdAt}">
+                                07.08.2026
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+  >
+
+  <title>Новый стол — ProCash</title>
+
+  <link
+          rel="stylesheet"
+          th:href="@{/css/dashboard.css}"
+          href="/css/dashboard.css"
+  >
+</head>
+
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a
+              class="sidebar-logo"
+              th:href="@{/dashboard}"
+      >
+        Pro<span>Cash</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-navigation">
+      <a
+              class="sidebar-link"
+              th:href="@{/dashboard}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+                  d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"
+          />
+        </svg>
+
+        <span>Главная</span>
+      </a>
+
+      <a
+              class="sidebar-link sidebar-link-active"
+              th:href="@{/restaurants}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 10v10h16V10"/>
+          <path d="M3 10 5 4h14l2 6"/>
+          <path d="M9 20v-5h6v5"/>
+        </svg>
+
+        <span>Рестораны</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <form
+              class="logout-form"
+              th:action="@{/logout}"
+              method="post"
+      >
+        <button
+                class="sidebar-link logout-button"
+                type="submit"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 5H5v14h5"/>
+            <path d="m14 8 4 4-4 4"/>
+            <path d="M8 12h10"/>
+          </svg>
+
+          <span>Выйти</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <header class="topbar">
+      <div class="topbar-user">
+        <div class="user-avatar">
+                    <span
+                            th:text="${#strings.toUpperCase(
+                            #strings.substring(email, 0, 1)
+                        )}"
+                    >
+                        U
+                    </span>
+        </div>
+
+        <div class="user-meta">
+          <strong th:text="${restaurant.name}">
+            Ресторан
+          </strong>
+
+          <span th:text="${email}">
+                        user@example.com
+                    </span>
+        </div>
+      </div>
+
+      <a
+              class="topbar-site-link"
+              th:href="@{/restaurants/{id}(id=${restaurant.id})}"
+      >
+        Закрыть
+
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 6 6 18"/>
+          <path d="m6 6 12 12"/>
+        </svg>
+      </a>
+    </header>
+
+    <main class="dashboard-content restaurant-form-page">
+
+      <a
+              class="back-link"
+              th:href="@{
+                    /restaurants/{id}/tables(
+                        id=${restaurant.id}
+                    )
+                }"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <path d="m10 17-5-5 5-5"/>
+        </svg>
+
+        Назад к столам
+      </a>
+
+      <section class="dashboard-heading">
+        <div>
+                    <span class="dashboard-eyebrow">
+                        QR-коды
+                    </span>
+
+          <h1>Добавить стол</h1>
+
+          <p>
+            Для каждого стола будет создана отдельная
+            защищённая ссылка и уникальный QR-код.
+          </p>
+        </div>
+      </section>
+
+      <section class="restaurant-form-card">
+        <form
+                class="restaurant-form"
+                th:action="@{
+                        /restaurants/{id}/tables(
+                            id=${restaurant.id}
+                        )
+                    }"
+                th:object="${tableForm}"
+                method="post"
+        >
+          <div class="form-section">
+            <div class="form-section-heading">
+              <h2>Данные стола</h2>
+
+              <p>
+                Номер должен быть уникальным
+                в пределах одного ресторана.
+              </p>
+            </div>
+
+            <div class="form-field">
+              <label for="tableNumber">
+                Номер стола
+              </label>
+
+              <input
+                      id="tableNumber"
+                      type="text"
+                      th:field="*{tableNumber}"
+                      placeholder="Например, 1 или VIP-1"
+                      autocomplete="off"
+                      autofocus
+                      th:classappend="${
+                                    #fields.hasErrors('tableNumber')
+                                } ? ' input-error' : ''"
+              >
+
+              <span class="field-hint">
+                                Можно использовать цифры, буквы и дефисы.
+                            </span>
+
+              <span
+                      class="field-error"
+                      th:if="${#fields.hasErrors('tableNumber')}"
+                      th:errors="*{tableNumber}"
+              >
+                                Ошибка номера стола
+                            </span>
+            </div>
+
+            <div class="form-field">
+              <label for="displayName">
+                Название
+                <span class="optional-label">
+                                    необязательно
+                                </span>
+              </label>
+
+              <input
+                      id="displayName"
+                      type="text"
+                      th:field="*{displayName}"
+                      placeholder="Например, Стол у окна"
+                      autocomplete="off"
+                      th:classappend="${
+                                    #fields.hasErrors('displayName')
+                                } ? ' input-error' : ''"
+              >
+
+              <span class="field-hint">
+                                Поможет сотрудникам быстрее находить стол.
+                            </span>
+
+              <span
+                      class="field-error"
+                      th:if="${#fields.hasErrors('displayName')}"
+                      th:errors="*{displayName}"
+              >
+                                Ошибка названия
+                            </span>
+            </div>
+
+            <div class="wizard-info-box">
+              <div class="wizard-info-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 11v5"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+              </div>
+
+              <div>
+                <strong>
+                  QR-код создадим автоматически
+                </strong>
+
+                <p>
+                  После добавления стола появится
+                  уникальная ссылка для генерации QR-кода.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a
+                    class="cancel-button"
+                    th:href="@{
+                                /restaurants/{id}/tables(
+                                    id=${restaurant.id}
+                                )
+                            }"
+            >
+              Отмена
+            </a>
+
+            <button
+                    class="primary-button"
+                    type="submit"
+            >
+              Создать стол
+
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14"/>
+                <path d="m14 7 5 5-5 5"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>
