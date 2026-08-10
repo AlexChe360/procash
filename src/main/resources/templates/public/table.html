@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
 
@@ -23,9 +24,13 @@
 
 <body>
 
-<main class="order-page">
+<main class="public-page">
 
-    <section class="order-header">
+    <!-- ========================= -->
+    <!-- HEADER -->
+    <!-- ========================= -->
+
+    <header class="public-header">
 
         <div class="restaurant-logo">
             <span
@@ -37,33 +42,53 @@
                     )
                 )}"
             >
-                R
+                C
             </span>
         </div>
 
-        <div>
+        <div class="restaurant-info">
+
             <h1 th:text="${restaurant.name}">
                 Caffe Time
             </h1>
 
-            <p th:text="'Стол ' + ${table.tableNumber}">
-                Стол 1
-            </p>
+            <div class="restaurant-meta">
+
+                <span th:text="'Стол ' + ${table.tableNumber}">
+                    Стол 1
+                </span>
+
+                <span
+                        th:if="${order != null}"
+                        th:text="'Счёт № ' + ${order.orderNumber}"
+                >
+                    Счёт № TEST-001
+                </span>
+
+            </div>
+
         </div>
 
-    </section>
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- PAYMENT ERROR -->
+    <!-- ========================= -->
 
     <div
             class="payment-error-message"
             th:if="${paymentFailed}"
     >
+
         <strong>
             Оплата не прошла
         </strong>
 
-        <p>
+        <span>
             Попробуйте оплатить заказ ещё раз.
-        </p>
+        </span>
+
     </div>
 
 
@@ -72,78 +97,123 @@
     <!-- ========================= -->
 
     <section
-            class="order-card"
+            class="receipt-card"
             th:if="${order != null and order.status.name() == 'OPEN'}"
     >
 
-        <div class="order-card-heading">
+        <div class="receipt-heading">
 
             <div>
-                <span class="order-eyebrow">
-                    Ваш заказ
+
+                <span class="receipt-label">
+                    Открытый счёт
                 </span>
 
-                <h2
-                        th:text="'Заказ № ' + ${order.orderNumber}"
+                <strong
+                        class="receipt-main-total"
+                        th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'WHITESPACE', 0, 'POINT') + ' ₸'}"
                 >
-                    Заказ № TEST-001
-                </h2>
+                    6 600 ₸
+                </strong>
+
             </div>
 
-            <span class="order-status">
-                Открыт
-            </span>
+            <div class="receipt-updated">
 
-        </div>
+                <span>
+                    Обновлён
+                </span>
 
-        <div class="order-items">
-
-            <div
-                    class="order-item"
-                    th:each="item : ${order.items}"
-            >
-
-                <div class="order-item-main">
-
-                    <strong th:text="${item.name}">
-                        Капучино
-                    </strong>
-
-                    <span
-                            th:text="${item.quantity + ' × ' + item.unitPrice + ' ₸'}"
-                    >
-                        2 × 1 500 ₸
-                    </span>
-
-                </div>
-
-                <strong
-                        class="order-item-price"
-                        th:text="${item.totalPrice + ' ₸'}"
-                >
-                    3 000 ₸
+                <strong>
+                    сейчас
                 </strong>
 
             </div>
 
         </div>
 
-        <div class="order-total">
+
+        <!-- ITEMS -->
+
+        <div class="receipt-items">
+
+            <article
+                    class="receipt-item"
+                    th:each="item : ${order.items}"
+            >
+
+                <div class="receipt-item-heading">
+
+                    <strong th:text="${item.name}">
+                        Капучино 400 мл
+                    </strong>
+
+                    <strong
+                            class="receipt-item-total"
+                            th:text="${#numbers.formatDecimal(item.totalPrice, 1, 'WHITESPACE', 0, 'POINT') + ' ₸'}"
+                    >
+                        2 400 ₸
+                    </strong>
+
+                </div>
+
+                <div
+                        class="receipt-item-description"
+                        th:text="${#numbers.formatDecimal(item.quantity, 1, 'NONE', 0, 'POINT')
+                            + ' × '
+                            + #numbers.formatDecimal(item.unitPrice, 1, 'WHITESPACE', 0, 'POINT')
+                            + ' ₸'}"
+                >
+                    2 × 1 200 ₸
+                </div>
+
+            </article>
+
+        </div>
+
+
+        <!-- SUBTOTAL -->
+
+        <div class="receipt-row receipt-subtotal">
 
             <span>
-                Итого
+                Позиции
             </span>
 
-            <strong th:text="${order.totalAmount + ' ₸'}">
-                14 700 ₸
+            <strong
+                    th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'WHITESPACE', 0, 'POINT') + ' ₸'}"
+            >
+                6 600 ₸
             </strong>
 
         </div>
 
+
+        <!-- FINAL TOTAL -->
+
+        <div class="receipt-row receipt-final">
+
+            <span>
+                К оплате
+            </span>
+
+            <strong
+                    th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'WHITESPACE', 0, 'POINT') + ' ₸'}"
+            >
+                6 600 ₸
+            </strong>
+
+        </div>
+
+
+        <!-- PAYMENT -->
+
         <form
+                class="payment-form"
                 th:action="@{/payments/create}"
                 method="post"
         >
+
             <input
                     type="hidden"
                     name="orderId"
@@ -154,57 +224,20 @@
                     class="pay-button"
                     type="submit"
             >
+
                 <span>
                     Оплатить
                 </span>
 
-                <span th:text="${order.totalAmount + ' ₸'}">
-                    14 700 ₸
-                </span>
+                <strong
+                        th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'WHITESPACE', 0, 'POINT') + ' ₸'}"
+                >
+                    6 600 ₸
+                </strong>
+
             </button>
+
         </form>
-
-    </section>
-
-
-    <!-- ========================= -->
-    <!-- PAID ORDER -->
-    <!-- ========================= -->
-
-    <section
-            class="empty-order-card payment-success-card"
-            th:if="${order != null and order.status.name() == 'PAID'}"
-    >
-
-        <div class="payment-success-icon">
-            ✓
-        </div>
-
-        <span class="order-eyebrow">
-            Оплата завершена
-        </span>
-
-        <h2>
-            Заказ оплачен
-        </h2>
-
-        <p
-                class="payment-success-order-number"
-                th:text="'Заказ № ' + ${order.orderNumber}"
-        >
-            Заказ № TEST-001
-        </p>
-
-        <strong
-                class="payment-success-amount"
-                th:text="${order.totalAmount + ' ₸'}"
-        >
-            14 700 ₸
-        </strong>
-
-        <p class="payment-success-message">
-            Спасибо! Платёж успешно принят.
-        </p>
 
     </section>
 
@@ -233,6 +266,23 @@
 
     </section>
 
+
+    <!-- ========================= -->
+    <!-- SECURITY -->
+    <!-- ========================= -->
+
+    <div
+            class="payment-security"
+            th:if="${order != null and order.status.name() == 'OPEN'}"
+    >
+        Оплата проходит на защищённой странице банка-эквайера.
+        ProCash не получает данные карты.
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- FOOTER -->
+    <!-- ========================= -->
 
     <footer class="order-footer">
         Powered by <strong>ProCash</strong>

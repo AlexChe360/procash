@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
 
@@ -19,7 +20,7 @@
 
 <body>
 
-<main class="order-page">
+<main class="public-page">
 
     <section class="payment-success-page">
 
@@ -27,7 +28,7 @@
             ✓
         </div>
 
-        <span class="order-eyebrow">
+        <span class="payment-success-eyebrow">
             Оплата завершена
         </span>
 
@@ -45,7 +46,13 @@
 
         <strong
                 class="payment-success-amount"
-                th:text="${payment.amount + ' ₸'}"
+                th:text="${#numbers.formatDecimal(
+                payment.amount,
+                1,
+                'WHITESPACE',
+                0,
+                'POINT'
+            ) + ' ₸'}"
         >
             14 700 ₸
         </strong>
@@ -54,46 +61,62 @@
             Спасибо! Платёж успешно принят.
         </p>
 
+
         <div
                 class="payment-success-details"
                 th:if="${payment.order != null}"
         >
 
             <div class="payment-success-detail-row">
-                <span>Заказ</span>
+
+                <span>
+                    Заказ
+                </span>
 
                 <strong
                         th:text="${payment.order.orderNumber}"
                 >
                     TEST-001
                 </strong>
+
             </div>
+
 
             <div
                     class="payment-success-detail-row"
                     th:if="${payment.order.table != null}"
             >
-                <span>Стол</span>
+
+                <span>
+                    Стол
+                </span>
 
                 <strong
                         th:text="${payment.order.table.tableNumber}"
                 >
                     1
                 </strong>
+
             </div>
 
+
             <div class="payment-success-detail-row">
-                <span>Статус</span>
+
+                <span>
+                    Статус
+                </span>
 
                 <strong class="payment-success-status">
                     Оплачено
                 </strong>
+
             </div>
 
         </div>
 
+
         <a
-                class="pay-button"
+                class="payment-success-button"
                 th:if="${payment.order != null
                 and payment.order.table != null
                 and payment.order.restaurant != null}"
@@ -104,10 +127,11 @@
                 )
             }"
         >
-            <span>Вернуться к столу</span>
+            Вернуться к столу
         </a>
 
     </section>
+
 
     <footer class="order-footer">
         Powered by <strong>ProCash</strong>
