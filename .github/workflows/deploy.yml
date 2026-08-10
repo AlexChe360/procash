@@ -154,7 +154,7 @@ jobs:
             echo "=== HEALTH CHECK ==="
 
             for i in {1..45}; do
-              if curl -fsS http://127.0.0.1:8080/ > /dev/null; then
+              if curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null; then
                 echo "=== PROCASH DEPLOYED SUCCESSFULLY ==="
                 exit 0
               fi

@@ -1,155 +1,155 @@
 <!doctype html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-  <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1"
-  >
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
 
-  <title>Регистрация — ProCash</title>
+    <title>Регистрация — ProCash</title>
 
-  <link
-          rel="stylesheet"
-          th:href="@{/css/auth.css}"
-          href="/css/auth.css"
-  >
+    <link
+            rel="stylesheet"
+            th:href="@{/css/auth.css}"
+            href="/css/auth.css"
+    >
 </head>
 
 <body>
 <main class="auth-page">
-  <a class="auth-logo" th:href="@{/}">
-    Pro<span>Cash</span>
-  </a>
+    <a class="auth-logo" th:href="@{/}">
+        Pro<span>Cash</span>
+    </a>
 
-  <section class="auth-card">
-    <header class="auth-header">
+    <section class="auth-card">
+        <header class="auth-header">
             <span class="auth-label">
                 Для ресторанов
             </span>
 
-      <h1>Создайте аккаунт</h1>
+            <h1>Создайте аккаунт</h1>
 
-      <p>
-        Добавьте ресторан и отправьте заявку
-        на подключение интернет-эквайринга.
-      </p>
-    </header>
+            <p>
+                Добавьте ресторан и отправьте заявку
+                на подключение интернет-эквайринга.
+            </p>
+        </header>
 
-    <form
-            class="auth-form"
-            th:action="@{/register}"
-            th:object="${registrationForm}"
-            method="post"
-    >
-      <div class="form-field">
-        <label for="email">
-          Email
-        </label>
+        <form
+                class="auth-form"
+                th:action="@{/register}"
+                th:object="${registrationForm}"
+                method="post"
+        >
+            <div class="form-field">
+                <label for="email">
+                    Email
+                </label>
 
-        <input
-                id="email"
-                type="email"
-                th:field="*{email}"
-                autocomplete="email"
-                placeholder="name@example.com"
-                th:classappend="${#fields.hasErrors('email')}
+                <input
+                        id="email"
+                        type="email"
+                        th:field="*{email}"
+                        autocomplete="email"
+                        placeholder="name@example.com"
+                        th:classappend="${#fields.hasErrors('email')}
                         ? ' input-error'
                         : ''"
-        >
+                >
 
-        <span
-                class="field-error"
-                th:if="${#fields.hasErrors('email')}"
-                th:errors="*{email}"
-        >
+                <span
+                        class="field-error"
+                        th:if="${#fields.hasErrors('email')}"
+                        th:errors="*{email}"
+                >
                     Ошибка email
                 </span>
-      </div>
+            </div>
 
-      <div class="form-field">
-        <label for="password">
-          Пароль
-        </label>
+            <div class="form-field">
+                <label for="password">
+                    Пароль
+                </label>
 
-        <input
-                id="password"
-                type="password"
-                th:field="*{password}"
-                autocomplete="new-password"
-                placeholder="Минимум 8 символов"
-                th:classappend="${#fields.hasErrors('password')}
+                <input
+                        id="password"
+                        type="password"
+                        th:field="*{password}"
+                        autocomplete="new-password"
+                        placeholder="Минимум 8 символов"
+                        th:classappend="${#fields.hasErrors('password')}
                         ? ' input-error'
                         : ''"
-        >
+                >
 
-        <span
-                class="field-error"
-                th:if="${#fields.hasErrors('password')}"
-                th:errors="*{password}"
-        >
+                <span
+                        class="field-error"
+                        th:if="${#fields.hasErrors('password')}"
+                        th:errors="*{password}"
+                >
                     Ошибка пароля
                 </span>
-      </div>
+            </div>
 
-      <div class="form-field">
-        <label for="passwordConfirmation">
-          Повторите пароль
-        </label>
+            <div class="form-field">
+                <label for="passwordConfirmation">
+                    Повторите пароль
+                </label>
 
-        <input
-                id="passwordConfirmation"
-                type="password"
-                th:field="*{passwordConfirmation}"
-                autocomplete="new-password"
-                placeholder="Повторите пароль"
-                th:classappend="${#fields.hasErrors('passwordConfirmation')}
+                <input
+                        id="passwordConfirmation"
+                        type="password"
+                        th:field="*{passwordConfirmation}"
+                        autocomplete="new-password"
+                        placeholder="Повторите пароль"
+                        th:classappend="${#fields.hasErrors('passwordConfirmation')}
                         ? ' input-error'
                         : ''"
-        >
+                >
 
-        <span
-                class="field-error"
-                th:if="${#fields.hasErrors('passwordConfirmation')}"
-                th:errors="*{passwordConfirmation}"
-        >
+                <span
+                        class="field-error"
+                        th:if="${#fields.hasErrors('passwordConfirmation')}"
+                        th:errors="*{passwordConfirmation}"
+                >
                     Пароли не совпадают
                 </span>
-      </div>
+            </div>
 
-      <label class="agreement">
-        <input
-                type="checkbox"
-                required
-        >
+            <label class="agreement">
+                <input
+                        type="checkbox"
+                        required
+                >
 
-        <span>
-                    Я принимаю условия использования
-                    и политику конфиденциальности
+                <span>
+                    Я принимаю условия </br>
+                    <a href="#"> Публичной оферты </a> и <a href="#">Политики конфиденциальности</a>
                 </span>
-      </label>
+            </label>
 
-      <button
-              class="auth-button"
-              type="submit"
-      >
-        Создать аккаунт
-      </button>
-    </form>
+            <button
+                    class="auth-button"
+                    type="submit"
+            >
+                Создать аккаунт
+            </button>
+        </form>
 
-    <p class="auth-switch">
-      Уже есть аккаунт?
+        <p class="auth-switch">
+            Уже есть аккаунт?
 
-      <a th:href="@{/login}">
-        Войти
-      </a>
+            <a th:href="@{/login}">
+                Войти
+            </a>
+        </p>
+    </section>
+
+    <p class="auth-footer">
+        © 2026 ProCash
     </p>
-  </section>
-
-  <p class="auth-footer">
-    © 2026 ProCash
-  </p>
 </main>
 </body>
 </html>
