@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+image="${PROCASH_PHP_IMAGE:-procash-php:8.4}"
+docker_args=(run --rm --network host --user "$(id -u):$(id -g)" -v "$repo_dir:$repo_dir" -w "$repo_dir")
+if [[ -t 0 ]]; then docker_args+=(-it); else docker_args+=(-i); fi
+if [[ -d /etc/ssl/certs ]]; then docker_args+=(-v /etc/ssl/certs:/etc/ssl/certs:ro -e COMPOSER_CAFILE=/etc/ssl/certs/ca-certificates.crt -e GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt); fi
+for variable in HTTP_PROXY HTTPS_PROXY http_proxy https_proxy NO_PROXY no_proxy APP_KEY APP_ENV APP_DEBUG PROCASH_MOCK_PAYMENTS PROCASH_MOCK_ORDERS PROCASH_PUBLIC_BASE_URL DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD; do
+  if [[ -v "$variable" ]]; then docker_args+=(-e "$variable"); fi
+done
+cache_dir="${PROCASH_COMPOSER_CACHE:-/tmp/procash-composer-cache}"
+mkdir -p "$cache_dir"
+docker_args+=(-e COMPOSER_HOME=/tmp/composer -v "$cache_dir:/tmp/composer/cache")
+proxy_url="${HTTPS_PROXY:-${https_proxy:-}}"
+if [[ -n "$proxy_url" ]]; then
+  proxy_host="${proxy_url#*://}"; proxy_host="${proxy_host%%/*}"; proxy_host="${proxy_host##*@}"; proxy_host="${proxy_host%%:*}"
+  proxy_ip="$(getent ahostsv4 "$proxy_host" | awk 'NR==1 {print $1}')"
+  if [[ -n "$proxy_ip" ]]; then docker_args+=(--add-host "$proxy_host:$proxy_ip"); fi
+fi
+exec docker "${docker_args[@]}" "$image" php "$@"

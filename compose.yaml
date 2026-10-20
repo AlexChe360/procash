@@ -1,47 +1,59 @@
 services:
-
   db:
     image: postgres:17-alpine
     restart: unless-stopped
-
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
+      POSTGRES_DB: ${POSTGRES_DB:-procash}
+      POSTGRES_USER: ${POSTGRES_USER:-procash_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
     volumes:
       - procash_postgres_data:/var/lib/postgresql/data
-
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
-        ]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 10s
-
-
+      retries: 12
   app:
-    image: ${PROCASH_IMAGE}
+    image: ${PROCASH_IMAGE:-procash:local}
+    build:
+      context: .
+      target: production
     restart: unless-stopped
-
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      PROCASH_PUBLIC_BASE_URL: https://procash.kz
-      SPRING_THYMELEAF_CACHE: "true"
-
+      APP_NAME: ProCash
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?Generate and set APP_KEY}
+      APP_URL: ${APP_URL:-https://procash.kz}
+      APP_LOCALE: ru
+      APP_FALLBACK_LOCALE: ru
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: ${POSTGRES_DB:-procash}
+      DB_USERNAME: ${POSTGRES_USER:-procash_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      SESSION_DRIVER: file
+      SESSION_SECURE_COOKIE: "true"
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      LOG_CHANNEL: stderr
+      PROCASH_PUBLIC_BASE_URL: ${APP_URL:-https://procash.kz}
+      PROCASH_MOCK_PAYMENTS: ${PROCASH_MOCK_PAYMENTS:-false}
+      PROCASH_MOCK_ORDERS: ${PROCASH_MOCK_ORDERS:-false}
     ports:
       - "127.0.0.1:8080:8080"
-
+    volumes:
+      - procash_storage:/var/www/html/storage
     depends_on:
       db:
         condition: service_healthy
-
-
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/actuator/health') === false ? 1 : 0);"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
 volumes:
   procash_postgres_data:
+  procash_storage:

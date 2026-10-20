@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+if ! docker image inspect "${PROCASH_PHP_IMAGE:-procash-php:8.4}" >/dev/null 2>&1; then
+  build_args=(--network host --target development -t "${PROCASH_PHP_IMAGE:-procash-php:8.4}" --build-arg HTTP_PROXY --build-arg HTTPS_PROXY)
+  proxy_url="${HTTPS_PROXY:-${https_proxy:-}}"
+  if [[ -n "$proxy_url" ]]; then
+    proxy_host="${proxy_url#*://}"; proxy_host="${proxy_host%%/*}"; proxy_host="${proxy_host##*@}"; proxy_host="${proxy_host%%:*}"
+    proxy_ip="$(getent ahostsv4 "$proxy_host" | awk 'NR==1 {print $1}')"
+    if [[ -n "$proxy_ip" ]]; then build_args+=(--add-host "$proxy_host:$proxy_ip"); fi
+  fi
+  docker --config "${DOCKER_CONFIG:-/tmp/procash-docker-config}" build "${build_args[@]}" .
+fi
+./bin/composer install --prefer-install="${COMPOSER_INSTALL_PREFERENCE:-dist}" --no-interaction
+if [[ ! -f .env ]]; then cp .env.example .env; chmod 600 .env; fi
+./bin/php bin/ensure-key.php
+./bin/php artisan migrate --force --no-interaction

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="csrf-token" content="{{ csrf_token() }}"><title>@yield('title', 'Личный кабинет') — ProCash</title><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/css/dashboard.css"><link rel="stylesheet" href="/css/app.css"></head>
+<body><div class="app-layout"><aside class="sidebar" id="navigation"><div class="sidebar-header"><a class="sidebar-logo" href="{{ route('dashboard') }}">Pro<span>Cash</span></a></div><nav class="sidebar-navigation">
+<a class="sidebar-link {{ request()->routeIs('dashboard') ? 'sidebar-link-active' : '' }}" href="{{ route('dashboard') }}">Главная</a><a class="sidebar-link {{ request()->is('restaurants*') ? 'sidebar-link-active' : '' }}" href="{{ route('restaurants.index') }}">Рестораны</a>
+@isset($restaurant)<a class="sidebar-link" href="{{ route('tables.index', $restaurant) }}">Столы и QR-коды</a><a class="sidebar-link" href="{{ route('restaurants.orders', $restaurant) }}">Заказы</a><a class="sidebar-link" href="{{ route('restaurants.payments', $restaurant) }}">Платежи</a>@endisset
+@can('admin')<a class="sidebar-link" href="{{ route('admin') }}">Администрирование</a>@endcan
+</nav><div class="sidebar-footer"><form class="logout-form" method="post" action="{{ route('logout') }}">@csrf<button class="sidebar-link logout-button" type="submit">Выйти</button></form></div></aside>
+<div class="app-main"><header class="topbar"><button class="mobile-menu-button" type="button" aria-label="Открыть меню" aria-controls="navigation" aria-expanded="false" id="menu-toggle"><span></span><span></span><span></span></button><div class="topbar-user"><div class="user-avatar">{{ mb_strtoupper(mb_substr(auth()->user()->email, 0, 1)) }}</div><div class="user-meta"><strong>Личный кабинет</strong><span>{{ auth()->user()->email }}</span></div></div><a class="topbar-site-link" href="/">Открыть сайт</a></header><main class="dashboard-content">
+@if(session('success'))<div class="pc-alert" role="status">{{ session('success') }}</div>@endif
+@if($errors->any())<div class="pc-alert pc-alert-error" role="alert"><strong>Проверьте введённые данные.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+@yield('content')
+</main></div></div><script src="/js/app.js" defer></script>@stack('scripts')</body></html>
