@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(web: __DIR__.'/../routes/web.php', commands: __DIR__.'/../routes/console.php', health: '/up')
     ->withMiddleware(function (Middleware $middleware): void {
+        // Compose exposes the app only on loopback, behind the host's reverse proxy.
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
         $middleware->web(append: [NormalizeLegacyInput::class]);
         $middleware->alias(['enabled' => EnsureEnabled::class, 'mock.payments' => RequireMockPayments::class]);
         $middleware->redirectGuestsTo('/login');

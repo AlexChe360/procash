@@ -89,6 +89,8 @@ docker compose up -d app
 
 `APP_KEY` и пароль базы задаются безопасно на сервере. Не коммитьте `.env`. Сохраняйте прежний Compose project name и том `procash_postgres_data`, чтобы использовать прежнюю PostgreSQL. `procash_storage` хранит файловые сессии и cache. HTTPS завершается внешним reverse proxy; в production включены secure cookies. Apache обслуживает только `public/`, порт приложения привязан к loopback сервера.
 
+Reverse proxy должен передавать исходный `Host` и заголовки `X-Forwarded-Proto`, `X-Forwarded-Port`, `X-Forwarded-For`, а HTTP перенаправлять на HTTPS. Laravel доверяет этим заголовкам: доступ к порту приложения должен оставаться только у reverse proxy. При `APP_ENV=production` и `APP_URL=https://...` адреса форм, ссылки и редиректы всегда используют HTTPS, даже если прокси не передал протокол. Для локальной разработки HTTP сохраняется.
+
 ## Автодеплой через GitHub Actions
 
 После `push` в `main` workflow **Deploy ProCash** выполняет тесты на SQLite и PostgreSQL, проверки сценария деплоя, сборку production-образа и развёртывание на VPS. Для повторного запуска выберите **Actions → Deploy ProCash → Run workflow → main**. Pull request запускает проверки без деплоя. Выполняющийся production-деплой не отменяется новым push.
