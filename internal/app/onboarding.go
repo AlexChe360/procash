@@ -24,7 +24,7 @@ func scanRequest(row pgx.Row) (v ConnectionRequest, err error) {
 }
 func (a *App) connect(w http.ResponseWriter, r *http.Request) {
 	p := Page{Title: "Подключить ресторан"}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		if r.URL.Query().Get("sent") == "1" {
 			p.Message = "Заявка принята. Команда ProCash свяжется с вами и после проверки предоставит доступ к кабинету."
 		}
@@ -50,7 +50,7 @@ func (a *App) connect(w http.ResponseWriter, r *http.Request) {
 		a.redirect(w, r, "/connect?sent=1")
 		return
 	}
-	if !fieldsValid(p.Values, map[string]int{"contact_name": 255, "email": 255, "phone": 30, "restaurant_name": 150, "city": 100}) || !validEmail(p.Values["email"]) || len(p.Values["phone"]) < 10 || len(p.Values["pos_system"]) > 100 || len(p.Values["comment"]) > 3000 || r.FormValue("consent") != "yes" {
+	if !fieldsValid(p.Values, map[string]int{"contact_name": 255, "email": 255, "phone": 30, "restaurant_name": 150, "city": 100}) || !validEmail(p.Values["email"]) || len(p.Values["phone"]) < 10 || len(p.Values["pos_system"]) > 100 || len(p.Values["comment"]) > 3000 || r.PostFormValue("consent") != "yes" {
 		p.Error = "Заполните контактные данные и название заведения, укажите корректный email и подтвердите согласие."
 		a.render(w, r, "connect.html", p, 422)
 		return

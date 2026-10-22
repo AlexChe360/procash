@@ -23,7 +23,7 @@ func PasswordHash(password string) (string, error) {
 }
 func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	p := Page{Title: "Вход в кабинет"}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		if u := CurrentUser(r); u != nil {
 			a.redirect(w, r, "/dashboard")
 			return
@@ -59,7 +59,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, pgx.ErrNoRows) {
 		hash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
 	}
-	ok := CheckPassword(hash, r.FormValue("password"))
+	ok := CheckPassword(hash, r.PostFormValue("password"))
 	if !ok || u.ID == "" || !enabled || expired {
 		p.Error = "Неверный email или пароль. Если срок временного пароля истёк, обратитесь в ProCash."
 		a.render(w, r, "login.html", p, 422)
@@ -71,7 +71,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, err)
 		return
 	}
-	a.cookie(w, "session", token, 43200)
+	a.setSession(w, token, 43200)
 	if u.MustChange {
 		a.redirect(w, r, "/account/password")
 	} else if u.Admin() {
@@ -87,8 +87,7 @@ func (a *App) logout(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	a.cookie(w, "session", "", -1)
-	a.cookie(w, "csrf", "", -1)
+	a.setSession(w, "", -1)
 	a.redirect(w, r, "/login")
 }
 func (a *App) profile(w http.ResponseWriter, r *http.Request) {
@@ -97,7 +96,7 @@ func (a *App) profile(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("saved") == "1" {
 		p.Message = "Данные сохранены."
 	}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		a.render(w, r, "profile.html", p, 200)
 		return
 	}
@@ -121,7 +120,7 @@ func (a *App) profile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	changed := !strings.EqualFold(currentEmail, p.Values["email"])
-	if changed && !CheckPassword(hash, r.FormValue("current_password")) {
+	if changed && !CheckPassword(hash, r.PostFormValue("current_password")) {
 		p.Error = "Для изменения email укажите текущий пароль."
 		a.render(w, r, "profile.html", p, 422)
 		return
@@ -152,7 +151,7 @@ func (a *App) profile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if changed {
-		a.cookie(w, "session", "", -1)
+		a.setSession(w, "", -1)
 		a.redirect(w, r, "/login?changed=1")
 	} else {
 		a.redirect(w, r, "/account?saved=1")
@@ -161,7 +160,7 @@ func (a *App) profile(w http.ResponseWriter, r *http.Request) {
 func (a *App) password(w http.ResponseWriter, r *http.Request) {
 	u := CurrentUser(r)
 	p := Page{Title: "Изменить пароль", Active: "account"}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		a.render(w, r, "password.html", p, 200)
 		return
 	}
@@ -175,8 +174,8 @@ func (a *App) password(w http.ResponseWriter, r *http.Request) {
 		a.render(w, r, "password.html", p, 429)
 		return
 	}
-	next := r.FormValue("password")
-	if len(next) < 12 || len(next) > 72 || next != r.FormValue("password_confirmation") || next == r.FormValue("current_password") {
+	next := r.PostFormValue("password")
+	if len(next) < 12 || len(next) > 72 || next != r.PostFormValue("password_confirmation") || next == r.PostFormValue("current_password") {
 		p.Error = "Новый пароль должен отличаться от текущего, содержать от 12 до 72 байт и совпадать с подтверждением."
 		a.render(w, r, "password.html", p, 422)
 		return
@@ -193,7 +192,7 @@ func (a *App) password(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, err)
 		return
 	}
-	if !CheckPassword(hash, r.FormValue("current_password")) {
+	if !CheckPassword(hash, r.PostFormValue("current_password")) {
 		p.Error = "Текущий пароль указан неправильно."
 		a.render(w, r, "password.html", p, 422)
 		return
@@ -219,7 +218,7 @@ func (a *App) password(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, err)
 		return
 	}
-	a.cookie(w, "session", token, 43200)
+	a.setSession(w, token, 43200)
 	if u.Admin() {
 		a.redirect(w, r, "/admin?password=changed")
 	} else {

@@ -153,13 +153,10 @@ func (a *App) freedom(w http.ResponseWriter, r *http.Request) {
 		a.notFound(w, r)
 		return
 	}
-	_, err := a.DB.Exec(r.Context(), `INSERT INTO freedom_pay_applications(id,restaurant_id,status,current_step,created_at,updated_at) VALUES($1,$2,'DRAFT','COMPANY',now(),now()) ON CONFLICT(restaurant_id) DO NOTHING`, NewID(), v.ID)
-	if err != nil {
-		a.fail(w, r, err)
-		return
-	}
 	application, err := loadFreedom(r.Context(), a.DB, v.ID)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
+		application = Integration{RestaurantID: v.ID, Kind: "freedom-pay", Status: "DRAFT", Values: map[string]string{}, Editable: true}
+	} else if err != nil {
 		a.fail(w, r, err)
 		return
 	}
@@ -168,7 +165,7 @@ func (a *App) freedom(w http.ResponseWriter, r *http.Request) {
 	if step == "review" {
 		p.Fields = allFreedomFields()
 	}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		a.render(w, r, "freedom.html", p, 200)
 		return
 	}
@@ -183,6 +180,10 @@ func (a *App) freedom(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		a.fail(w, r, err)
+		return
+	}
+	if _, err = tx.Exec(r.Context(), `INSERT INTO freedom_pay_applications(id,restaurant_id,status,current_step,created_at,updated_at) VALUES($1,$2,'DRAFT','COMPANY',now(),now()) ON CONFLICT(restaurant_id) DO NOTHING`, NewID(), v.ID); err != nil {
 		a.fail(w, r, err)
 		return
 	}
@@ -243,15 +244,13 @@ func (a *App) freedomSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	app, err := loadFreedom(r.Context(), tx, v.ID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		a.notFound(w, r)
-		return
-	}
-	if err != nil {
+		app = Integration{RestaurantID: v.ID, Kind: "freedom-pay", Status: "DRAFT", Values: map[string]string{}, Editable: true}
+	} else if err != nil {
 		a.fail(w, r, err)
 		return
 	}
 	app.Step = "review"
-	p := Page{Title: "Подключение Freedom Pay", Active: "restaurants", Restaurant: v, Application: &app, Values: app.Values}
+	p := Page{Title: "Подключение Freedom Pay", Active: "restaurants", Restaurant: v, Application: &app, Values: app.Values, Fields: allFreedomFields()}
 	if !app.Editable || !app.Complete {
 		p.Error = "Заполните все шаги. Отправка доступна для черновика или заявки на исправление."
 		a.render(w, r, "freedom.html", p, 422)
@@ -288,18 +287,15 @@ func (a *App) iiko(w http.ResponseWriter, r *http.Request) {
 	if v == nil {
 		return
 	}
-	_, err := a.DB.Exec(r.Context(), `INSERT INTO iiko_applications(id,restaurant_id) VALUES($1,$2) ON CONFLICT(restaurant_id) DO NOTHING`, NewID(), v.ID)
-	if err != nil {
-		a.fail(w, r, err)
-		return
-	}
 	app, err := loadIiko(r.Context(), a.DB, v.ID)
-	if err != nil {
+	if errors.Is(err, pgx.ErrNoRows) {
+		app = Integration{RestaurantID: v.ID, Kind: "iiko", Status: "DRAFT", Values: map[string]string{}, Editable: true}
+	} else if err != nil {
 		a.fail(w, r, err)
 		return
 	}
 	p := Page{Title: "Подключение iiko", Active: "restaurants", Restaurant: v, Application: &app, Fields: iikoFields, Values: app.Values}
-	if r.Method == "GET" {
+	if r.Method == http.MethodGet || r.Method == http.MethodHead {
 		a.render(w, r, "iiko.html", p, 200)
 		return
 	}
@@ -310,6 +306,10 @@ func (a *App) iiko(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		a.fail(w, r, err)
+		return
+	}
+	if _, err = tx.Exec(r.Context(), `INSERT INTO iiko_applications(id,restaurant_id) VALUES($1,$2) ON CONFLICT(restaurant_id) DO NOTHING`, NewID(), v.ID); err != nil {
 		a.fail(w, r, err)
 		return
 	}
@@ -329,7 +329,7 @@ func (a *App) iiko(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data, _ := json.Marshal(p.Values)
-	_, err = tx.Exec(r.Context(), `UPDATE iiko_applications SET data=$1,updated_at=now() WHERE id=$2`, data, app.ID)
+	_, err = tx.Exec(r.Context(), `UPDATE iiko_applications SET data=$1,updated_at=now() WHERE id=$2`, data, locked.ID)
 	if err == nil {
 		err = tx.Commit(r.Context())
 	}
@@ -356,10 +356,8 @@ func (a *App) iikoSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	app, err := loadIiko(r.Context(), tx, v.ID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		a.notFound(w, r)
-		return
-	}
-	if err != nil {
+		app = Integration{RestaurantID: v.ID, Kind: "iiko", Status: "DRAFT", Values: map[string]string{}, Editable: true}
+	} else if err != nil {
 		a.fail(w, r, err)
 		return
 	}

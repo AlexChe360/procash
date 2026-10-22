@@ -22,6 +22,15 @@ document.addEventListener('htmx:sendError', () => {
   const element = document.getElementById('network-error');
   if (element) element.hidden = false;
 });
+document.addEventListener('htmx:responseError', (event) => {
+  if (event.detail.xhr.getResponseHeader('X-ProCash-Error') === 'csrf') {
+    const element = document.getElementById('network-error');
+    if (element) {
+      element.textContent = 'Срок действия формы истёк. Обновите страницу и отправьте её ещё раз.';
+      element.hidden = false;
+    }
+  }
+});
 document.addEventListener('pageChanged', (event) => {
   document.body.setAttribute('hx-headers', JSON.stringify({'X-CSRF-Token': event.detail.csrf}));
   document.querySelectorAll('[data-section]').forEach((link) => {

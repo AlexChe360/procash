@@ -13,6 +13,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log/slog"
+	"mime"
 	"net"
 	"net/http"
 	"net/mail"
@@ -114,40 +115,100 @@ func (a *App) cookieName(kind string) string {
 func (a *App) cookie(w http.ResponseWriter, kind, value string, age int) {
 	http.SetCookie(w, &http.Cookie{Name: a.cookieName(kind), Value: value, Path: "/", HttpOnly: true, Secure: strings.HasPrefix(a.Config.BaseURL, "https://"), SameSite: http.SameSiteLaxMode, MaxAge: age})
 }
-func (a *App) csrfSignature(token string) string {
+func (a *App) csrfSignature(r *http.Request, token string) string {
+	var value string
+	if session, err := r.Cookie(a.cookieName("session")); err == nil {
+		value = session.Value
+	}
+	return a.csrfSignatureForSession(value, token)
+}
+func (a *App) csrfSignatureForSession(session, token string) string {
+	binding := "anonymous"
+	if len(session) == 43 {
+		binding = hashToken(session)
+	}
 	h := hmac.New(sha256.New, a.Config.Key)
-	h.Write([]byte("csrf:" + token))
+	h.Write([]byte("csrf:v2:" + binding + ":" + token))
 	return hex.EncodeToString(h.Sum(nil))
 }
+func (a *App) setSession(w http.ResponseWriter, value string, age int) {
+	a.cookie(w, "session", value, age)
+	if age < 0 {
+		a.cookie(w, "csrf", "", -1)
+		return
+	}
+	nonce := RandomToken()
+	a.cookie(w, "csrf", nonce+"."+a.csrfSignatureForSession(value, nonce), 43200)
+}
 func (a *App) csrf(w http.ResponseWriter, r *http.Request) string {
-	if c, err := r.Cookie(a.cookieName("csrf")); err == nil && a.validCSRF(c.Value) {
+	if c, err := r.Cookie(a.cookieName("csrf")); err == nil && a.validCSRF(r, c.Value) {
 		return c.Value
 	}
 	token := RandomToken()
-	token += "." + a.csrfSignature(token)
+	token += "." + a.csrfSignature(r, token)
 	a.cookie(w, "csrf", token, 43200)
 	return token
 }
-func (a *App) validCSRF(token string) bool {
+func (a *App) validCSRF(r *http.Request, token string) bool {
 	parts := strings.Split(token, ".")
-	return len(parts) == 2 && len(parts[0]) == 43 && hmac.Equal([]byte(parts[1]), []byte(a.csrfSignature(parts[0])))
+	return len(parts) == 2 && len(parts[0]) == 43 && hmac.Equal([]byte(parts[1]), []byte(a.csrfSignature(r, parts[0])))
 }
+
+func sameOrigin(value, baseURL string, referer bool) bool {
+	u, err := url.Parse(value)
+	base, baseErr := url.Parse(baseURL)
+	if err != nil || baseErr != nil || u.User != nil || u.Opaque != "" || u.Hostname() == "" || !strings.EqualFold(u.Scheme, base.Scheme) || !strings.EqualFold(u.Hostname(), base.Hostname()) {
+		return false
+	}
+	if !referer && (u.Path != "" || u.RawQuery != "" || u.ForceQuery || strings.ContainsAny(value, "?#")) {
+		return false
+	}
+	port := func(v *url.URL) string {
+		if p := v.Port(); p != "" {
+			return p
+		}
+		if strings.EqualFold(v.Scheme, "https") {
+			return "443"
+		}
+		return "80"
+	}
+	return port(u) == port(base)
+}
+
 func (a *App) validateCSRF(r *http.Request) bool {
-	origin := r.Header.Get("Origin")
-	if origin != "" {
-		u, err := url.Parse(origin)
-		base, _ := url.Parse(a.Config.BaseURL)
-		if err != nil || !strings.EqualFold(u.Host, base.Host) || u.Scheme != base.Scheme {
+	// Sibling origins are not trusted, even if their cookies are same-site.
+	if sites := r.Header.Values("Sec-Fetch-Site"); len(sites) > 0 && (len(sites) != 1 || (sites[0] != "same-origin" && sites[0] != "none")) {
+		return false
+	}
+	if origins := r.Header.Values("Origin"); len(origins) > 0 {
+		if len(origins) != 1 || !sameOrigin(origins[0], a.Config.BaseURL, false) {
+			return false
+		}
+	} else if referers := r.Header.Values("Referer"); len(referers) > 0 {
+		if len(referers) != 1 || !sameOrigin(referers[0], a.Config.BaseURL, true) {
 			return false
 		}
 	}
-	c, err := r.Cookie(a.cookieName("csrf"))
-	if err != nil || !a.validCSRF(c.Value) {
+	if len(r.CookiesNamed(a.cookieName("csrf"))) != 1 || len(r.CookiesNamed(a.cookieName("session"))) > 1 {
 		return false
 	}
-	token := r.Header.Get("X-CSRF-Token")
-	if token == "" {
-		token = r.FormValue("_csrf")
+	c, err := r.Cookie(a.cookieName("csrf"))
+	if err != nil || !a.validCSRF(r, c.Value) {
+		return false
+	}
+	fields := r.PostForm["_csrf"]
+	headers := r.Header.Values("X-CSRF-Token")
+	if len(fields) > 1 || len(headers) > 1 {
+		return false
+	}
+	var token string
+	if len(headers) == 1 {
+		token = headers[0]
+		if len(fields) == 1 && fields[0] != token {
+			return false
+		}
+	} else if len(fields) == 1 {
+		token = fields[0]
 	}
 	return subtle.ConstantTimeCompare([]byte(token), []byte(c.Value)) == 1
 }
@@ -329,12 +390,27 @@ func (a *App) Handler() http.Handler {
 			}
 		}()
 		r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
-		if r.Method == "POST" {
-			if err := r.ParseForm(); err != nil {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Method != http.MethodOptions {
+			mediaType, _, mediaErr := mime.ParseMediaType(r.Header.Get("Content-Type"))
+			if r.Header.Get("Content-Type") != "" && mediaErr != nil {
+				http.Error(w, "Некорректная форма", 400)
+				return
+			}
+			var formErr error
+			if mediaType == "multipart/form-data" {
+				formErr = r.ParseMultipartForm(64 * 1024)
+				if r.MultipartForm != nil {
+					defer r.MultipartForm.RemoveAll()
+				}
+			} else {
+				formErr = r.ParseForm()
+			}
+			if formErr != nil {
 				http.Error(w, "Некорректная форма", 400)
 				return
 			}
 			if !a.validateCSRF(r) {
+				w.Header().Set("X-ProCash-Error", "csrf")
 				http.Error(w, "Сессия формы истекла. Обновите страницу и попробуйте ещё раз.", 403)
 				return
 			}
@@ -367,7 +443,7 @@ func validEmail(s string) bool {
 	m, e := mail.ParseAddress(s)
 	return e == nil && m.Address == s && len(s) <= 255
 }
-func form(r *http.Request, key string) string { return strings.TrimSpace(r.FormValue(key)) }
+func form(r *http.Request, key string) string { return strings.TrimSpace(r.PostFormValue(key)) }
 func fieldsValid(values map[string]string, required map[string]int) bool {
 	for k, max := range required {
 		v := values[k]
