@@ -1,0 +1,47 @@
+name: Manage ProCash administrator
+on:
+  workflow_dispatch:
+    inputs:
+      admin_email:
+        description: "Create/reset administrator email (uses ADMIN_BOOTSTRAP_PASSWORD secret)"
+        type: string
+        required: true
+        default: info@procash.kz
+permissions:
+  contents: read
+concurrency:
+  group: procash-manage-administrator
+  cancel-in-progress: false
+jobs:
+  administrator:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.VPS_DEPLOY_PATH || '/opt/procash' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${SSH_PRIVATE_KEY:?Missing VPS_SSH_KEY secret}"
+          : "${SSH_KNOWN_HOSTS:?Missing VPS_KNOWN_HOSTS secret}"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Create or reset administrator
+        env:
+          ADMIN_EMAIL: ${{ inputs.admin_email }}
+          ADMIN_BOOTSTRAP_PASSWORD: ${{ secrets.ADMIN_BOOTSTRAP_PASSWORD }}
+        run: python3 deploy/admin_access.py
+      - name: Remove SSH credentials
+        if: always()
+        run: rm -f -- ~/.ssh/id_ed25519 ~/.ssh/known_hosts

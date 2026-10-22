@@ -11,3 +11,4 @@
 **/.DS_Store
 /storage/
 /.phpunit.result.cache
+__pycache__/

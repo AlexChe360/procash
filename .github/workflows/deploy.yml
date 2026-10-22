@@ -46,6 +46,8 @@ jobs:
         env:
           PROCASH_TEST_BINARY: /tmp/procash
         run: python3 tests/deploy_workflow_test.py
+      - name: Test administrator access workflow
+        run: python3 tests/admin_access_test.py
   build:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test
