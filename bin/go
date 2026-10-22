@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ -x /workspace/.go-toolchain/go/bin/go ]]; then
+export GOCACHE="${GOCACHE:-/workspace/.go-cache/build}"
+export GOMODCACHE="${GOMODCACHE:-/workspace/.go-cache/pkg/mod}"
+export GOPATH="${GOPATH:-/workspace/.go-cache}"
+exec /workspace/.go-toolchain/go/bin/go "$@"
+fi
+exec go "$@"

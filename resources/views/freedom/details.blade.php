@@ -1,1 +1,0 @@
-<dl class="pc-details">@foreach(\App\Support\FreedomPaySteps::STEPS as $key=>$stepLabel)@foreach(\App\Support\FreedomPaySteps::fields($key) as $name=>$label)<div><dt>{{ $label }}</dt><dd>{{ $application->$name ?? 'Не указано' }}</dd></div>@endforeach @endforeach</dl>

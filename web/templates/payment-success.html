@@ -1,0 +1,1 @@
+<section class="card mx-auto max-w-lg text-center"><h1>Платёж подтверждён</h1>{{range .Payments}}<p class="my-6 text-3xl font-bold">{{money .Amount}}</p>{{end}}<p class="muted">{{if eq (index .Values "mock") "true"}}Тестовый платёж. Деньги не списывались.{{else}}Спасибо!{{end}}</p></section>

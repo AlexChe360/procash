@@ -20,40 +20,33 @@ services:
       target: production
     restart: unless-stopped
     environment:
-      APP_NAME: ProCash
       APP_ENV: production
-      APP_DEBUG: "false"
       APP_KEY: ${APP_KEY:?Generate and set APP_KEY}
       APP_URL: ${APP_URL:-https://procash.kz}
-      APP_LOCALE: ru
-      APP_FALLBACK_LOCALE: ru
-      DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
       DB_DATABASE: ${POSTGRES_DB:-procash}
       DB_USERNAME: ${POSTGRES_USER:-procash_user}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
-      SESSION_DRIVER: file
-      SESSION_SECURE_COOKIE: "true"
-      CACHE_STORE: file
-      QUEUE_CONNECTION: sync
-      LOG_CHANNEL: stderr
-      PROCASH_PUBLIC_BASE_URL: ${APP_URL:-https://procash.kz}
+      NOTIFY_EMAIL: ${NOTIFY_EMAIL:-info@procash.kz}
+      SMTP_HOST: ${SMTP_HOST:-${MAIL_HOST:-}}
+      SMTP_PORT: ${SMTP_PORT:-${MAIL_PORT:-587}}
+      SMTP_USERNAME: ${SMTP_USERNAME:-${MAIL_USERNAME:-}}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-${MAIL_PASSWORD:-}}
+      SMTP_FROM: ${SMTP_FROM:-${MAIL_FROM_ADDRESS:-info@procash.kz}}
+      SMTP_SECURITY: ${SMTP_SECURITY:-}
       PROCASH_MOCK_PAYMENTS: ${PROCASH_MOCK_PAYMENTS:-false}
       PROCASH_MOCK_ORDERS: ${PROCASH_MOCK_ORDERS:-false}
     ports:
       - "127.0.0.1:8080:8080"
-    volumes:
-      - procash_storage:/var/www/html/storage
     depends_on:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/actuator/health') === false ? 1 : 0);"]
+      test: ["CMD", "procash", "healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 6
       start_period: 20s
 volumes:
   procash_postgres_data:
-  procash_storage:

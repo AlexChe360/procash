@@ -1,7 +1,0 @@
-@extends('layouts.app')
-@section('title', 'Личный кабинет')
-@section('content')
-<section class="dashboard-heading"><div><span class="dashboard-eyebrow">Обзор</span><h1>Добро пожаловать в ProCash</h1><p>Управляйте ресторанами, платежами и подключением к Freedom Pay.</p></div><a class="primary-button" href="{{ route('restaurants.create') }}">Добавить ресторан</a></section>
-<section class="stats-grid"><article class="stat-card"><strong class="stat-value">{{ $restaurants->count() }}</strong><span class="stat-label">Ресторанов</span></article><article class="stat-card"><strong class="stat-value">{{ number_format($paidToday, 2, '.', ' ') }} ₸</strong><span class="stat-label">Оплачено сегодня</span></article><article class="stat-card"><strong class="stat-value">{{ $orderCount }}</strong><span class="stat-label">Заказов сегодня</span></article><article class="stat-card"><strong class="stat-value">{{ $restaurants->filter(fn($r) => $r->application?->status === 'APPROVED')->count() }}</strong><span class="stat-label">Подключено к Freedom Pay</span></article></section>
-<section class="dashboard-panel"><h2>Ваши рестораны</h2>@forelse($restaurants as $item)<div class="restaurant-info-row"><a href="{{ route('restaurants.show', $item) }}">{{ $item->name }}</a><span>{{ $item->city }}</span></div>@empty<p>Подключите первый ресторан: заполните данные, отправьте заявку Freedom Pay и создайте QR-коды для столов.</p><a class="secondary-button" href="{{ route('restaurants.create') }}">Начать подключение</a>@endforelse</section>
-@endsection

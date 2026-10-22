@@ -12,9 +12,6 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        database: [sqlite, pgsql]
     services:
       postgres:
         image: postgres:17-alpine
@@ -27,31 +24,28 @@ jobs:
           --health-cmd "pg_isready -U procash_test -d procash_test"
           --health-interval 5s --health-timeout 5s --health-retries 12
     env:
-      APP_ENV: testing
-      DB_CONNECTION: ${{ matrix.database }}
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: ${{ matrix.database == 'sqlite' && ':memory:' || 'procash_test' }}
-      DB_USERNAME: procash_test
-      DB_PASSWORD: procash_test_password
+      TEST_DATABASE_URL: postgres://procash_test:procash_test_password@127.0.0.1:5432/procash_test?sslmode=disable
     steps:
       - uses: actions/checkout@v7
-      - uses: shivammathur/setup-php@v2
+      - uses: actions/setup-go@v6
         with:
-          php-version: "8.4"
-          extensions: bcmath, gd, mbstring, pdo_pgsql, pdo_sqlite, zip
-          tools: composer:v2
-          coverage: none
-      - run: composer validate --strict
-      - run: composer install --prefer-dist --no-interaction --no-progress
-      - run: cp .env.example .env
-      - run: php artisan key:generate --no-interaction
-      - run: vendor/bin/pint --test
-      - run: php artisan test
+          go-version-file: go.mod
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: go mod verify
+      - name: Check Go formatting
+        run: test -z "$(gofmt -l cmd internal web/embed.go)"
+      - run: go vet ./...
+      - run: go test -race -count=1 ./...
+      - run: go build -o /tmp/procash ./cmd/procash
       - name: Test deployment and rollback
-        if: matrix.database == 'sqlite'
+        env:
+          PROCASH_TEST_BINARY: /tmp/procash
         run: python3 tests/deploy_workflow_test.py
-      - run: php artisan view:cache
   build:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test
@@ -125,20 +119,27 @@ jobs:
           remote_dir=$(ssh "${ssh_options[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'mktemp -d /tmp/procash-deploy.XXXXXXXX')
           [[ "$remote_dir" =~ ^/tmp/procash-deploy\.[A-Za-z0-9]+$ ]] || { echo 'Invalid temporary deployment directory'; exit 1; }
           echo "directory=$remote_dir" >> "$GITHUB_OUTPUT"
-          scp "${ssh_options[@]}" -P "$VPS_PORT" deploy/deploy.sh deploy/prepare-env.php "$VPS_USER@$VPS_HOST:$remote_dir/"
-      - name: Deploy tested Laravel image
+          scp "${ssh_options[@]}" -P "$VPS_PORT" deploy/deploy.sh "$VPS_USER@$VPS_HOST:$remote_dir/"
+      - name: Deploy tested Go image
         env:
           IMAGE_DIGEST: ${{ needs.build.outputs.digest }}
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_REVISION: ${{ github.sha }}
           REMOTE_DIR: ${{ steps.upload.outputs.directory }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST || secrets.MAIL_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || secrets.MAIL_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME || secrets.MAIL_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD || secrets.MAIL_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM || secrets.MAIL_FROM_ADDRESS }}
+          SMTP_SECURITY: ${{ secrets.SMTP_SECURITY }}
         shell: bash
         run: |
           set -euo pipefail
+          mail_settings=$(python3 -c 'import json,os; print(json.dumps({key:os.environ.get(key, "") for key in ("SMTP_HOST","SMTP_PORT","SMTP_USERNAME","SMTP_PASSWORD","SMTP_FROM","SMTP_SECURITY")}))')
           image_ref="ghcr.io/${GITHUB_REPOSITORY,,}@$IMAGE_DIGEST"
           printf -v remote_command 'bash %q %q %q %q %q' "$REMOTE_DIR/deploy.sh" "$DEPLOY_PATH" "$image_ref" "$DEPLOY_REVISION" "$REGISTRY_USER"
-          printf '%s\n' "$REGISTRY_TOKEN" | ssh -T -i "$HOME/.ssh/id_ed25519" \
+          printf '%s\n%s\n' "$REGISTRY_TOKEN" "$mail_settings" | ssh -T -i "$HOME/.ssh/id_ed25519" \
             -p "$VPS_PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes \
             -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
             "$VPS_USER@$VPS_HOST" "$remote_command"
@@ -150,7 +151,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$REMOTE_DIR" =~ ^/tmp/procash-deploy\.[A-Za-z0-9]+$ ]]
-          printf -v cleanup 'rm -f -- %q %q; rmdir -- %q' "$REMOTE_DIR/deploy.sh" "$REMOTE_DIR/prepare-env.php" "$REMOTE_DIR"
+          printf -v cleanup 'rm -f -- %q; rmdir -- %q' "$REMOTE_DIR/deploy.sh" "$REMOTE_DIR"
           ssh -T -i "$HOME/.ssh/id_ed25519" -p "$VPS_PORT" \
             -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
             "$VPS_USER@$VPS_HOST" "$cleanup"

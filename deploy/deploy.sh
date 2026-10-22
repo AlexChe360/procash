@@ -6,7 +6,6 @@ deploy_root="${1:?Deployment directory is required}"
 image_ref="${2:?Image digest is required}"
 revision="${3:?Git revision is required}"
 registry_user="${4:?Registry username is required}"
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 [[ "$revision" =~ ^[a-f0-9]{40}$ ]] || { echo 'Invalid Git revision' >&2; exit 1; }
 [[ "$image_ref" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]] || { echo 'Expected an immutable GHCR digest' >&2; exit 1; }
@@ -30,10 +29,8 @@ trap 'rm -rf -- "$auth_dir"' EXIT
 compose() { docker compose --project-directory "$PWD" --env-file "$PWD/.env" "$@"; }
 
 prepare_env() {
-  docker run --rm --user "$(id -u):$(id -g)" --entrypoint php \
-    -v "$PWD:/deploy" \
-    -v "$script_dir/prepare-env.php:/var/www/html/deploy/prepare-env.php:ro" \
-    "$image_ref" /var/www/html/deploy/prepare-env.php /deploy/.env "$@"
+  printf '%s' "$mail_settings" | docker run --rm -i --user "$(id -u):$(id -g)" \
+    -v "$PWD:/deploy" "$image_ref" prepare-env /deploy/.env "$@"
 }
 
 on_failure() {
@@ -73,6 +70,8 @@ IFS= read -r registry_token || true
 [[ -n "$registry_token" ]] || { echo 'Registry token is missing' >&2; exit 1; }
 printf '%s' "$registry_token" | docker --config "$auth_dir" login ghcr.io --username "$registry_user" --password-stdin
 unset registry_token
+IFS= read -r mail_settings || mail_settings='{}'
+[[ -n "$mail_settings" ]] || mail_settings='{}'
 docker --config "$auth_dir" pull "$image_ref"
 image_revision="$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image_ref")"
 [[ "$image_revision" == "$revision" ]] || { echo 'Image revision differs from the tested commit' >&2; exit 1; }
@@ -99,6 +98,10 @@ worktree_changed=true
 export PROCASH_IMAGE="$image_ref"
 compose config --quiet
 compose up -d --wait --wait-timeout 90 db
+if ! compose run --rm --no-deps --pull never app check-config; then
+  echo '::error::Production mail configuration is missing or invalid. Set SMTP_* or MAIL_* on the server, or SMTP_* repository secrets.'
+  false
+fi
 
 mkdir -p .deploy/backups
 backup_path="$PWD/.deploy/backups/$(date -u +%Y%m%dT%H%M%SZ)-${revision:0:12}-$$.dump"
@@ -108,12 +111,11 @@ compose exec -T db pg_restore --list < "$backup_path.partial" > /dev/null
 mv -- "$backup_path.partial" "$backup_path"
 backup_file="$backup_path"
 
-compose run --rm --no-deps --pull never app php artisan migrate --force --no-interaction
+compose run --rm --no-deps --pull never app migrate
 app_replaced=true
 compose up -d --no-deps --no-build --pull never --force-recreate --wait --wait-timeout 120 app
 container="$(compose ps -q app)"
 [[ -n "$container" && "$(docker inspect --format '{{.Image}}' "$container")" == "$expected_image" ]]
-compose exec -T app php artisan view:cache
 curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8080/actuator/health > /dev/null
 curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8080/login > /dev/null
 

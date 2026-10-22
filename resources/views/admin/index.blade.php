@@ -1,5 +1,0 @@
-@extends('layouts.app')
-@section('title', 'Администрирование')
-@section('content')
-<section class="dashboard-heading"><h1>Заявки Freedom Pay</h1></section><section class="stats-grid">@foreach(['READY_FOR_REVIEW','UNDER_FREEDOM_REVIEW','APPROVED'] as $status)<article class="stat-card"><strong class="stat-value">{{ $counts[$status] ?? 0 }}</strong><span class="stat-label">{{ __('procash.statuses.'.$status) }}</span></article>@endforeach</section><section class="dashboard-panel"><div class="pc-scroll"><table class="pc-table"><thead><tr><th>Ресторан</th><th>Владелец</th><th>Статус</th><th>Создана</th></tr></thead><tbody>@forelse($applications as $application)<tr><td><a href="{{ route('admin.applications.show', $application) }}">{{ $application->restaurant->name }}</a></td><td>{{ $application->restaurant->owner->email }}</td><td>{{ __('procash.statuses.'.$application->status) }}</td><td>{{ $application->created_at->format('d.m.Y H:i') }}</td></tr>@empty<tr><td colspan="4">Заявок пока нет.</td></tr>@endforelse</tbody></table></div>{{ $applications->links('components.pagination') }}</section>
-@endsection

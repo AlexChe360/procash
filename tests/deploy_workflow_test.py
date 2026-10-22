@@ -1,4 +1,4 @@
-"""Exercise deployment ordering/rollback with real Git and PHP, and a fake Docker CLI."""
+"""Exercise deployment ordering/rollback with real Git and Go, and a fake Docker CLI."""
 import base64
 import json
 import os
@@ -33,8 +33,8 @@ if args[:1]==['inspect']:
     finish(output=('true' if '.State.Running' in args[2] else 'sha256:'+('c' if state['active']=='new' else 'a')*64))
 if args[:1]==['run']:
     i=args.index('/deploy/.env')
-    command=json.loads(os.environ['DEPLOY_TEST_PHP'])+[os.environ['DEPLOY_TEST_HELPER'],str(Path.cwd()/'.env')]+args[i+1:]
-    finish(subprocess.run(command).returncode)
+    command=[os.environ['DEPLOY_TEST_BINARY'],'prepare-env',str(Path.cwd()/'.env')]+args[i+1:]
+    finish(subprocess.run(command,input=sys.stdin.read(),text=True).returncode)
 assert args[:1]==['compose'],args
 args=args[5:]
 if args[0]=='ps': finish(output='app-container')
@@ -53,6 +53,7 @@ if args[0]=='exec':
     if args[3]=='sh': finish(1)  # Previous application was Spring, without PHP.
     finish()
 if args[0]=='run':
+    if args[-1]=='check-config': finish(19 if state['fail']=='config' else 0)
     assert (Path.cwd()/'revision.txt').read_text()=='new'
     assert any(e[0]=='docker' and 'pg_restore' in e[1] for e in state['events'])
     finish(17 if state['fail']=='migration' else 0)
@@ -71,7 +72,7 @@ sys.exit(22 if state['fail']=='login' and sys.argv[-1].endswith('/login') else 0
 
 class DeploymentTest(unittest.TestCase):
     def setUp(self):
-        parent = ROOT / "storage/framework/testing"
+        parent = ROOT / ".deploy/testing"
         parent.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix="deploy-test-", dir=parent)
         self.addCleanup(self.temporary.cleanup)
@@ -100,14 +101,14 @@ class DeploymentTest(unittest.TestCase):
             p = fake_bin / name
             p.write_text(content)
             p.chmod(0o755)
-        php = shutil.which("php")
-        php_command = [php] if php else [shutil.which("docker"), "run", "--rm", "--user", f"{os.getuid()}:{os.getgid()}", "-v", f"{ROOT}:{ROOT}", "-w", str(ROOT), "procash-php:8.4", "php"]
+        binary = os.environ.get("PROCASH_TEST_BINARY", "/workspace/procash-go-runtime/procash")
+        if not Path(binary).is_file():
+            self.fail("Build the Go binary and set PROCASH_TEST_BINARY before deployment tests")
         self.environment = {
             **os.environ,
             "PATH": str(fake_bin) + os.pathsep + os.environ["PATH"],
             "DEPLOY_TEST_STATE": str(self.state_file),
-            "DEPLOY_TEST_HELPER": str(ROOT / "deploy/prepare-env.php"),
-            "DEPLOY_TEST_PHP": json.dumps(php_command),
+            "DEPLOY_TEST_BINARY": binary,
         }
         # Do not inherit a developer's image override into a simulated server.
         self.environment.pop("PROCASH_IMAGE", None)
@@ -126,7 +127,7 @@ class DeploymentTest(unittest.TestCase):
         state = self.state()
         state["fail"] = failure
         self.state_file.write_text(json.dumps(state))
-        result = subprocess.run(["bash", str(ROOT / "deploy/deploy.sh"), str(self.server), IMAGE, self.revision, "fixture-user"], input="fixture-registry-token\n", text=True, capture_output=True, env=self.environment)
+        result = subprocess.run(["bash", str(ROOT / "deploy/deploy.sh"), str(self.server), IMAGE, self.revision, "fixture-user"], input="fixture-registry-token\n{}\n", text=True, capture_output=True, env=self.environment)
         self.assertNotIn("fixture-registry-token", result.stdout + result.stderr)
         for kind, argv in self.state()["events"]:
             if kind == "docker" and "login" in argv:
@@ -174,6 +175,13 @@ class DeploymentTest(unittest.TestCase):
         result = self.run_deploy("login")
         self.assertNotEqual(result.returncode, 0)
         self.assert_restored()
+
+    def test_missing_mail_configuration_keeps_previous_release(self):
+        result = self.run_deploy("config")
+        self.assertNotEqual(result.returncode, 0)
+        self.assert_restored()
+        self.assertIn("Production mail configuration", result.stdout)
+        self.assertFalse(any("pg_dump" in str(e) or "migrate" in e[1] for e in self.state()["events"]))
 
     def test_failed_backup_never_runs_migrations(self):
         result = self.run_deploy("backup")

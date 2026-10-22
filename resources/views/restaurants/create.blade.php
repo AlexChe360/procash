@@ -1,5 +1,0 @@
-@extends('layouts.app')
-@section('title', 'Новый ресторан')
-@section('content')
-<a class="back-link" href="{{ route('restaurants.index') }}">Назад к ресторанам</a><section class="dashboard-heading"><h1>Добавить ресторан</h1></section><section class="restaurant-form-card"><form class="restaurant-form" method="post" action="{{ route('restaurants.store') }}">@csrf<div class="form-section"><x-field name="name" label="Название ресторана" maxlength="150"/><x-field name="slug" label="Адрес страницы (латиница и дефисы)" pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="150"/><x-field name="description" label="Описание" type="textarea" :required="false" maxlength="1000"/><div class="form-grid"><x-field name="phone" label="Телефон" type="tel" :required="false" maxlength="30"/><x-field name="city" label="Город" :required="false" maxlength="100"/></div></div><div class="form-actions"><a class="cancel-button" href="{{ route('restaurants.index') }}">Отмена</a><button class="primary-button" type="submit">Создать ресторан</button></div></form></section>
-@endsection
