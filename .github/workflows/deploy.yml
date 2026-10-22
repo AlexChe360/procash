@@ -35,11 +35,22 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - run: npm audit --audit-level=high
       - run: npm run check
       - run: go mod verify
       - name: Check Go formatting
         run: test -z "$(gofmt -l cmd internal web/embed.go)"
       - run: go vet ./...
+      - name: Check Go vulnerability advisories
+        run: |
+          if ! go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./... > /tmp/govulncheck.log 2>&1; then
+            cat /tmp/govulncheck.log
+            python3 -c 'from pathlib import Path; message = Path("/tmp/govulncheck.log").read_text()[-6000:]; print("::error title=Go vulnerability check::" + message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))'
+            exit 1
+          fi
+          cat /tmp/govulncheck.log
+      - name: Install Chromium for XSS regression tests
+        run: npx playwright-core install --with-deps chromium
       - run: go test -race -count=1 ./...
       - run: go build -o /tmp/procash ./cmd/procash
       - name: Test deployment and rollback

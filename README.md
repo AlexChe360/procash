@@ -72,6 +72,8 @@ docker compose exec app procash admin --email admin@example.com
 
 ## Проверки
 
+Проверка XSS описана в [отчёте](docs/security/xss-review-2026-10-22.md). Перед интеграционными Go-тестами установите Chromium командой `npx playwright-core install --with-deps chromium` либо задайте `CHROMIUM_PATH` к системному браузеру. Тесты включают браузерные регрессии для экранирования, CSP и HTMX. Override `@parcel/watcher` до 2.6.0 устраняет уязвимую цепочку `micromatch`/`braces`, закреплённую в Tailwind CLI.
+
 Используйте отдельную тестовую PostgreSQL, в имени которой есть `test`. Каждый интеграционный тест создаёт и удаляет только собственную схему внутри этой базы. Рабочие таблицы не очищаются.
 
 ```bash

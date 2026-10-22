@@ -38,6 +38,10 @@ type contextKey int
 
 const userKey contextKey = 1
 
+// Keep executable code in local static files. User data is escaped separately by
+// html/template; CSP is an additional browser boundary, not an HTML sanitizer.
+const contentSecurityPolicy = "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; script-src-attr 'none'; style-src 'self' https://fonts.googleapis.com; style-src-attr 'none'; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; frame-src 'none'"
+
 type Page struct {
 	Title, Active, CSRF, Error, Message, TemporaryPassword, LoginURL string
 	User                                                             *User
@@ -313,6 +317,7 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("POST /payments/{payment}/mock/{result}", a.completePayment)
 	mux.HandleFunc("GET /payments/{payment}/success", a.paymentSuccess)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("X-Frame-Options", "DENY")

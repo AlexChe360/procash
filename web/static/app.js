@@ -1,3 +1,16 @@
+// Discard HTML cached by earlier HTMX versions, including one-time credentials.
+try {
+  sessionStorage.removeItem('htmx-history-cache');
+  localStorage.removeItem('htmx-history-cache');
+} catch (_) {}
+
+document.addEventListener('change', (event) => {
+  const field = event.target;
+  if (field instanceof HTMLSelectElement && field.matches('[data-auto-submit]') && field.form) {
+    HTMLFormElement.prototype.requestSubmit.call(field.form);
+  }
+});
+
 document.addEventListener('click', (event) => {
   const button = event.target.closest('[data-copy]');
   if (button && navigator.clipboard) {
