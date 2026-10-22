@@ -168,18 +168,36 @@ func (a *App) reviewRequest(w http.ResponseWriter, r *http.Request) {
 		var role string
 		var enabled bool
 		err = tx.QueryRow(r.Context(), `SELECT id,role,enabled FROM users WHERE lower(email)=lower($1) FOR UPDATE`, v.Email).Scan(&v.UserID, &role, &enabled)
-		if errors.Is(err, pgx.ErrNoRows) {
-			v.UserID = NewID()
+		existing := err == nil
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			a.fail(w, r, err)
+			return
+		}
+		if existing && (role == "ADMIN" || !enabled) {
+			p.Error = "Нельзя выдать доступ через заявку для администратора или отключённого аккаунта."
+			a.render(w, r, "request.html", p, 409)
+			return
+		}
+		if !existing || form(r, "issue_temporary_password") == "yes" {
+			if !existing {
+				v.UserID = NewID()
+			}
 			p.TemporaryPassword = RandomToken()[:24]
 			var hash string
 			hash, err = PasswordHash(p.TemporaryPassword)
 			if err == nil {
-				_, err = tx.Exec(r.Context(), `INSERT INTO users(id,email,name,phone,password_hash,role,enabled,must_change_password,temporary_password_expires_at,created_at,updated_at) VALUES($1,$2,$3,$4,$5,'USER',true,true,now()+interval '7 days',now(),now())`, v.UserID, v.Email, v.ContactName, v.Phone, hash)
+				if existing {
+					_, err = tx.Exec(r.Context(), `UPDATE users SET password_hash=$1,must_change_password=true,temporary_password_expires_at=now()+interval '7 days',updated_at=now() WHERE id=$2`, hash, v.UserID)
+					if err == nil {
+						_, err = tx.Exec(r.Context(), `DELETE FROM sessions WHERE user_id=$1`, v.UserID)
+					}
+					if err == nil {
+						err = audit(r.Context(), tx, CurrentUser(r).ID, "user.reset", v.UserID)
+					}
+				} else {
+					_, err = tx.Exec(r.Context(), `INSERT INTO users(id,email,name,phone,password_hash,role,enabled,must_change_password,temporary_password_expires_at,created_at,updated_at) VALUES($1,$2,$3,$4,$5,'USER',true,true,now()+interval '7 days',now(),now())`, v.UserID, v.Email, v.ContactName, v.Phone, hash)
+				}
 			}
-		} else if err == nil && (role == "ADMIN" || !enabled) {
-			p.Error = "Нельзя выдать доступ через заявку для администратора или отключённого аккаунта."
-			a.render(w, r, "request.html", p, 409)
-			return
 		}
 		if err != nil {
 			a.fail(w, r, err)
@@ -192,7 +210,7 @@ func (a *App) reviewRequest(w http.ResponseWriter, r *http.Request) {
 		if p.TemporaryPassword != "" {
 			invitation += "Временный пароль: " + p.TemporaryPassword + "\nОн действует 7 дней. При первом входе обязательно установите собственный пароль.\n"
 		} else {
-			invitation += "Войдите с существующим паролем. Он не изменился.\n"
+			invitation += "Заведение добавлено к учётной записи с этим email.\nЕсли вы уже пользовались кабинетом, войдите с вашим паролем. Если доступ ещё не выдавался или пароль неизвестен, запросите временный пароль у администратора ProCash: " + a.Config.NotifyEmail + ".\n"
 		}
 		if err == nil {
 			err = a.queueMail(r.Context(), tx, v.Email, "Доступ к кабинету ProCash", invitation)

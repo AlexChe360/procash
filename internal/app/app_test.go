@@ -271,6 +271,86 @@ func TestExistingAccountPasswordIsPreservedOnGrant(t *testing.T) {
 	if f.scalar(`SELECT count(*)::text FROM users`) != "2" {
 		t.Fatal("duplicate user")
 	}
+	detail, _ := f.request(f.login("admin@example.com"), "GET", "/admin/requests/"+id, nil, 200)
+	if !strings.Contains(detail, `action="/admin/users/`+owner+`/reset"`) {
+		t.Fatal("approved request must offer issuing access when the recipient has no known password")
+	}
+	for i := 0; i < 2; i++ {
+		if _, err := f.app.DeliverOne(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	invitation := f.mail.Messages[1]
+	if invitation.To != "existing@example.com" || !strings.Contains(invitation.Body, "Если доступ ещё не выдавался или пароль неизвестен") || strings.Contains(invitation.Body, "Войдите с существующим паролем. Он не изменился.") {
+		t.Fatal("invitation must explain how to obtain access without assuming a known password")
+	}
+}
+
+func TestGrantCanExplicitlyIssuePasswordForExistingRecord(t *testing.T) {
+	f := newFixture(t)
+	owner := f.user("existing@example.com", "USER")
+	f.venue(owner, "Прежнее заведение")
+	oldSession := f.login("existing@example.com")
+	f.user("admin@example.com", "ADMIN")
+	admin := f.login("admin@example.com")
+	id := f.submitRequest(f.client(), "existing@example.com", "Новое заведение")
+	body, _ := f.request(admin, "GET", "/admin/requests/"+id, nil, 200)
+	if !strings.Contains(body, `name="issue_temporary_password"`) {
+		t.Fatal("administrator must be able to explicitly choose a new password")
+	}
+	body, _ = f.request(admin, "POST", "/admin/requests/"+id+"/approve", url.Values{"issue_temporary_password": {"yes"}}, 200)
+	match := regexp.MustCompile(`id="temporary-password">([^<]+)<`).FindStringSubmatch(body)
+	if len(match) != 2 {
+		t.Fatal("existing record did not receive temporary access")
+	}
+	temporary := match[1]
+	hash := f.scalar(`SELECT password_hash FROM users WHERE id=$1`, owner)
+	if !CheckPassword(hash, temporary) || CheckPassword(hash, "fixture-password") {
+		t.Fatal("new credential was not applied")
+	}
+	if f.scalar(`SELECT count(*)::text FROM users`) != "2" || f.scalar(`SELECT count(*)::text FROM restaurants WHERE owner_id=$1`, owner) != "2" {
+		t.Fatal("grant must reuse the user and preserve existing venues")
+	}
+	f.request(oldSession, "GET", "/dashboard", nil, 303)
+	_, response := f.request(f.client(), "POST", "/login", url.Values{"email": {"existing@example.com"}, "password": {temporary}}, 303)
+	if response.Header.Get("Location") != "/account/password" {
+		t.Fatal("issued access must require a new personal password")
+	}
+	f.request(admin, "POST", "/admin/requests/"+id+"/approve", url.Values{"issue_temporary_password": {"yes"}}, 409)
+	if f.scalar(`SELECT password_hash FROM users WHERE id=$1`, owner) != hash || f.scalar(`SELECT count(*)::text FROM mail_outbox`) != "2" {
+		t.Fatal("repeated approval changed credentials or sent another invitation")
+	}
+	for i := 0; i < 2; i++ {
+		if _, err := f.app.DeliverOne(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if f.mail.Messages[1].To != "existing@example.com" || !strings.Contains(f.mail.Messages[1].Body, "Временный пароль: "+temporary) {
+		t.Fatal("invitation must contain the usable new password")
+	}
+}
+
+func TestRequestCannotResetAdministratorOrDisabledUser(t *testing.T) {
+	for _, target := range []string{"ADMIN", "disabled"} {
+		t.Run(target, func(t *testing.T) {
+			f := newFixture(t)
+			role := "USER"
+			if target == "ADMIN" {
+				role = "ADMIN"
+			}
+			owner := f.user("existing@example.com", role)
+			if target == "disabled" {
+				f.sql(`UPDATE users SET enabled=false WHERE id=$1`, owner)
+			}
+			hash := f.scalar(`SELECT password_hash FROM users WHERE id=$1`, owner)
+			f.user("admin@example.com", "ADMIN")
+			id := f.submitRequest(f.client(), "existing@example.com", "Новое заведение")
+			f.request(f.login("admin@example.com"), "POST", "/admin/requests/"+id+"/approve", url.Values{"issue_temporary_password": {"yes"}}, 409)
+			if f.scalar(`SELECT password_hash FROM users WHERE id=$1`, owner) != hash || f.scalar(`SELECT count(*)::text FROM restaurants`) != "0" || f.scalar(`SELECT count(*)::text FROM mail_outbox`) != "1" {
+				t.Fatal("disallowed grant changed the account or created access")
+			}
+		})
+	}
 }
 func TestLegacyBcryptAndExpiredOrDisabledAccess(t *testing.T) {
 	f := newFixture(t)
@@ -568,8 +648,20 @@ func TestAdminResetRevokesSessionsAndDoesNotExposePasswordAgain(t *testing.T) {
 	c := f.login("owner@example.com")
 	admin := f.login("admin@example.com")
 	body, _ := f.request(admin, "POST", "/admin/users/"+owner+"/reset", nil, 200)
-	if !strings.Contains(body, `id="temporary-password"`) {
+	match := regexp.MustCompile(`id="temporary-password">([^<]+)<`).FindStringSubmatch(body)
+	if len(match) != 2 {
 		t.Fatal("temporary credential not shown")
+	}
+	temporary := match[1]
+	_, response := f.request(f.client(), "POST", "/login", url.Values{"email": {"owner@example.com"}, "password": {temporary}}, 303)
+	if response.Header.Get("Location") != "/account/password" {
+		t.Fatal("reset password must permit first login and require replacement")
+	}
+	if _, err := f.app.DeliverOne(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(f.mail.Messages) != 1 || f.mail.Messages[0].To != "owner@example.com" || !strings.Contains(f.mail.Messages[0].Body, "Временный пароль: "+temporary) {
+		t.Fatal("password reset must send the usable temporary credential to the user")
 	}
 	f.request(c, "GET", "/dashboard", nil, 303)
 	body, _ = f.request(admin, "GET", "/admin/users", nil, 200)
