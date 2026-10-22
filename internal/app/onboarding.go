@@ -16,7 +16,7 @@ type ConnectionRequest struct {
 	CreatedAt                                                                                                      time.Time
 }
 
-const requestColumns = `id,contact_name,email,phone,restaurant_name,city,pos_system,comment,status,review_comment,COALESCE(user_id::text,''),COALESCE(restaurant_id::text,''),created_at`
+const requestColumns = `id,contact_name,email,phone,restaurant_name,city,pos_system,comment,status,review_comment,COALESCE((SELECT id::text FROM users WHERE id=connection_requests.user_id AND deleted_at IS NULL),''),COALESCE((SELECT id::text FROM restaurants WHERE id=connection_requests.restaurant_id AND deleted_at IS NULL),''),created_at`
 
 func scanRequest(row pgx.Row) (v ConnectionRequest, err error) {
 	err = row.Scan(&v.ID, &v.ContactName, &v.Email, &v.Phone, &v.RestaurantName, &v.City, &v.POS, &v.Comment, &v.Status, &v.ReviewComment, &v.UserID, &v.RestaurantID, &v.CreatedAt)

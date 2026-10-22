@@ -1,0 +1,25 @@
+<div class="page-heading"><h1>{{.Title}}</h1></div>
+{{template "alerts" .}}
+<section class="card max-w-2xl space-y-5">
+{{if .Restaurant}}
+  <h2>{{.Restaurant.Name}}</h2>
+  <p>Заведение исчезнет из кабинета и метрик. Его QR-ссылки и заявки Freedom Pay / iiko станут недоступны. История заказов и платежей сохранится.</p>
+  <p class="muted">Учётная запись владельца и остальные его заведения продолжат работать.</p>
+  <form class="space-y-5" method="post" action="/admin/restaurants/{{.Restaurant.ID}}/delete">
+    <input type="hidden" name="_csrf" value="{{.CSRF}}">
+    <label class="flex items-start gap-3 text-sm"><input class="mt-1" type="checkbox" name="confirm" value="yes" required>Подтверждаю удаление заведения.</label>
+    <div class="flex flex-wrap gap-3"><button class="btn-danger" type="submit">Удалить заведение</button><a class="btn-light" href="/restaurants/{{.Restaurant.ID}}">Отмена</a></div>
+  </form>
+{{else}}
+  <h2>{{index .Values "name"}}</h2>
+  <p class="break-all">{{index .Values "email"}}</p>
+  <p>Пользователь потеряет доступ к кабинету, все его сессии завершатся. Его заведения исчезнут из списков и метрик, QR-ссылки перестанут работать.</p>
+  <p>Заведений к удалению: <strong>{{index .Values "restaurant_count"}}</strong>. История заказов и платежей сохранится.</p>
+  <p class="muted">Повторный доступ по этому email можно будет выдать через новую заявку на подключение.</p>
+  <form class="space-y-5" method="post" action="/admin/users/{{index .Values "user"}}/delete">
+    <input type="hidden" name="_csrf" value="{{.CSRF}}">
+    <label class="flex items-start gap-3 text-sm"><input class="mt-1" type="checkbox" name="confirm" value="yes" required>Подтверждаю удаление пользователя и всех его заведений.</label>
+    <div class="flex flex-wrap gap-3"><button class="btn-danger" type="submit">Удалить пользователя</button><a class="btn-light" href="/admin/users">Отмена</a></div>
+  </form>
+{{end}}
+</section>

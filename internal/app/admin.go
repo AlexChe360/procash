@@ -17,7 +17,10 @@ type UserRow struct {
 
 func (a *App) users(w http.ResponseWriter, r *http.Request) {
 	p := Page{Title: "Пользователи", Active: "users"}
-	rows, err := a.DB.Query(r.Context(), `SELECT id,email,name,phone,role,must_change_password,enabled,created_at FROM users ORDER BY created_at DESC LIMIT 200`)
+	if r.URL.Query().Get("deleted") == "1" {
+		p.Message = "Пользователь и его заведения удалены. Доступ к кабинету закрыт."
+	}
+	rows, err := a.DB.Query(r.Context(), `SELECT id,email,name,phone,role,must_change_password,enabled,created_at FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`)
 	if err != nil {
 		a.fail(w, r, err)
 		return
@@ -51,7 +54,7 @@ func (a *App) manageUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	var email, role string
-	err = tx.QueryRow(r.Context(), `SELECT email,role FROM users WHERE id=$1 FOR UPDATE`, id).Scan(&email, &role)
+	err = tx.QueryRow(r.Context(), `SELECT email,role FROM users WHERE id=$1 AND deleted_at IS NULL FOR UPDATE`, id).Scan(&email, &role)
 	if errors.Is(err, pgx.ErrNoRows) {
 		a.notFound(w, r)
 		return

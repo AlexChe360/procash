@@ -181,6 +181,28 @@ async function main() {
     await page.waitForURL('**/dashboard?password=changed');
     await assertSafe(page, 'mandatory password replacement');
     assert.equal(await page.evaluate(() => sessionStorage.getItem('htmx-history-cache')), null);
+
+    await login('admin@example.test', 'admin');
+    await page.locator(`a[href="/admin/restaurants/${data.venue}/delete"]`).click();
+    await page.waitForURL(`**/admin/restaurants/${data.venue}/delete`);
+    await assertSafe(page, 'restaurant deletion confirmation with hostile name');
+    assert.ok(await page.locator('[name=confirm]').evaluate((element) => element.required && element.validity.valueMissing));
+    await page.getByRole('link', { name: 'Отмена', exact: true }).click();
+    await page.waitForURL(`**/restaurants/${data.venue}`);
+    await page.getByRole('link', { name: 'Удалить заведение', exact: true }).click();
+    await page.locator('[name=confirm]').check();
+    await page.getByRole('button', { name: 'Удалить заведение', exact: true }).click();
+    await page.waitForURL('**/restaurants?deleted=1');
+    assert.equal(await page.locator(`a[href="/restaurants/${data.venue}"]`).count(), 0);
+    assert.equal((await page.request.get(data.base + data.publicURL)).status(), 404);
+    await page.goto(data.base + '/admin/users');
+    await page.locator('tr').filter({ hasText: 'new-request@example.test' }).getByRole('link', { name: 'Удалить', exact: true }).click();
+    await assertSafe(page, 'user deletion confirmation with hostile name');
+    await page.locator('[name=confirm]').check();
+    await page.getByRole('button', { name: 'Удалить пользователя', exact: true }).click();
+    await page.waitForURL('**/admin/users?deleted=1');
+    assert.equal(await page.locator('tr').filter({ hasText: 'new-request@example.test' }).count(), 0);
+    console.log('Admin deletion passed: escaped confirmations, cancellation, restaurant/user removal and inactive QR links.');
     assert.deepEqual(dialogs, [], 'Unexpected JavaScript dialog');
     const original = await page.request.get(data.base + '/connect');
     const policy = original.headers()['content-security-policy'];

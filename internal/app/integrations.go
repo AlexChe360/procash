@@ -129,7 +129,7 @@ func decodeValues(data []byte) map[string]string {
 func loadFreedom(ctx context.Context, q rowQuerier, id string) (Integration, error) {
 	var v Integration
 	var data []byte
-	err := q.QueryRow(ctx, `SELECT f.id,f.restaurant_id,f.status,lower(f.current_step),COALESCE(f.review_comment,''),COALESCE(f.partner_application_id,''),COALESCE(f.merchant_id,''),to_jsonb(f),r.name,u.email FROM freedom_pay_applications f JOIN restaurants r ON r.id=f.restaurant_id JOIN users u ON u.id=r.owner_id WHERE f.restaurant_id=$1`, id).Scan(&v.ID, &v.RestaurantID, &v.Status, &v.Step, &v.ReviewComment, &v.Reference, &v.MerchantID, &data, &v.RestaurantName, &v.OwnerEmail)
+	err := q.QueryRow(ctx, `SELECT f.id,f.restaurant_id,f.status,lower(f.current_step),COALESCE(f.review_comment,''),COALESCE(f.partner_application_id,''),COALESCE(f.merchant_id,''),to_jsonb(f),r.name,u.email FROM freedom_pay_applications f JOIN restaurants r ON r.id=f.restaurant_id JOIN users u ON u.id=r.owner_id WHERE f.restaurant_id=$1 AND r.deleted_at IS NULL`, id).Scan(&v.ID, &v.RestaurantID, &v.Status, &v.Step, &v.ReviewComment, &v.Reference, &v.MerchantID, &data, &v.RestaurantName, &v.OwnerEmail)
 	v.Kind = "freedom-pay"
 	v.Values = decodeValues(data)
 	v.Editable = contains([]string{"DRAFT", "NEEDS_CHANGES"}, v.Status)
@@ -138,7 +138,7 @@ func loadFreedom(ctx context.Context, q rowQuerier, id string) (Integration, err
 }
 func lockRestaurant(ctx context.Context, tx pgx.Tx, id string) error {
 	var actual string
-	return tx.QueryRow(ctx, `SELECT id FROM restaurants WHERE id=$1 FOR UPDATE`, id).Scan(&actual)
+	return tx.QueryRow(ctx, `SELECT id FROM restaurants WHERE id=$1 AND deleted_at IS NULL FOR UPDATE`, id).Scan(&actual)
 }
 func (a *App) freedom(w http.ResponseWriter, r *http.Request) {
 	v := a.ownedRestaurant(w, r)
@@ -180,6 +180,10 @@ func (a *App) freedom(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			a.notFound(w, r)
+			return
+		}
 		a.fail(w, r, err)
 		return
 	}
@@ -239,6 +243,10 @@ func (a *App) freedomSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			a.notFound(w, r)
+			return
+		}
 		a.fail(w, r, err)
 		return
 	}
@@ -275,7 +283,7 @@ func (a *App) freedomSubmit(w http.ResponseWriter, r *http.Request) {
 func loadIiko(ctx context.Context, q rowQuerier, id string) (Integration, error) {
 	var v Integration
 	var data []byte
-	err := q.QueryRow(ctx, `SELECT i.id,i.restaurant_id,i.status,i.data,i.review_comment,i.partner_reference,r.name,u.email FROM iiko_applications i JOIN restaurants r ON r.id=i.restaurant_id JOIN users u ON u.id=r.owner_id WHERE i.restaurant_id=$1`, id).Scan(&v.ID, &v.RestaurantID, &v.Status, &data, &v.ReviewComment, &v.Reference, &v.RestaurantName, &v.OwnerEmail)
+	err := q.QueryRow(ctx, `SELECT i.id,i.restaurant_id,i.status,i.data,i.review_comment,i.partner_reference,r.name,u.email FROM iiko_applications i JOIN restaurants r ON r.id=i.restaurant_id JOIN users u ON u.id=r.owner_id WHERE i.restaurant_id=$1 AND r.deleted_at IS NULL`, id).Scan(&v.ID, &v.RestaurantID, &v.Status, &data, &v.ReviewComment, &v.Reference, &v.RestaurantName, &v.OwnerEmail)
 	v.Kind = "iiko"
 	v.Values = decodeValues(data)
 	v.Editable = contains([]string{"DRAFT", "NEEDS_CHANGES"}, v.Status)
@@ -306,6 +314,10 @@ func (a *App) iiko(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			a.notFound(w, r)
+			return
+		}
 		a.fail(w, r, err)
 		return
 	}
@@ -351,6 +363,10 @@ func (a *App) iikoSubmit(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.ID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			a.notFound(w, r)
+			return
+		}
 		a.fail(w, r, err)
 		return
 	}
@@ -391,7 +407,7 @@ func (a *App) adminIntegrations(w http.ResponseWriter, r *http.Request) {
 		title = "Заявки iiko"
 	}
 	p := Page{Title: title, Active: kind}
-	rows, err := a.DB.Query(r.Context(), `SELECT i.id,i.restaurant_id,r.name,u.email,i.status FROM `+table+` i JOIN restaurants r ON r.id=i.restaurant_id JOIN users u ON u.id=r.owner_id ORDER BY i.updated_at DESC LIMIT 200`)
+	rows, err := a.DB.Query(r.Context(), `SELECT i.id,i.restaurant_id,r.name,u.email,i.status FROM `+table+` i JOIN restaurants r ON r.id=i.restaurant_id JOIN users u ON u.id=r.owner_id WHERE r.deleted_at IS NULL ORDER BY i.updated_at DESC LIMIT 200`)
 	if err != nil {
 		a.fail(w, r, err)
 		return
@@ -437,6 +453,10 @@ func (a *App) findIntegration(w http.ResponseWriter, r *http.Request, kind strin
 	} else {
 		v, err = loadFreedom(r.Context(), a.DB, restaurant)
 	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		a.notFound(w, r)
+		return nil
+	}
 	if err != nil {
 		a.fail(w, r, err)
 		return nil
@@ -469,6 +489,10 @@ func (a *App) reviewIntegration(w http.ResponseWriter, r *http.Request, kind str
 	}
 	defer tx.Rollback(r.Context())
 	if err = lockRestaurant(r.Context(), tx, v.RestaurantID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			a.notFound(w, r)
+			return
+		}
 		a.fail(w, r, err)
 		return
 	}

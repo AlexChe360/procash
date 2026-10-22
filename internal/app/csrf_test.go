@@ -129,6 +129,7 @@ func TestEveryPOSTActionRejectsCSRFAttacksWithoutSideEffects(t *testing.T) {
 	for _, action := range []string{"reset", "enable", "disable"} {
 		paths = append(paths, "/admin/users/"+owner+"/"+action)
 	}
+	paths = append(paths, "/admin/users/"+owner+"/delete", "/admin/restaurants/"+venue+"/delete")
 	for _, action := range []string{"send", "approve", "changes", "reject"} {
 		paths = append(paths, "/admin/freedom-pay/applications/"+freedom+"/"+action, "/admin/iiko/applications/"+iiko+"/"+action)
 	}
@@ -164,7 +165,7 @@ func TestEveryPOSTActionRejectsCSRFAttacksWithoutSideEffects(t *testing.T) {
 	before := csrfState(f)
 	for _, path := range paths {
 		for _, attack := range tests {
-			values := url.Values{"_csrf": {csrf}, "name": {"FORGED"}, "email": {"admin@example.com"}, "password": {"forged-new-password"}, "current_password": {"fixture-password"}, "password_confirmation": {"forged-new-password"}, "order_id": {order}, "table_number": {"999"}, "review_comment": {"FORGED"}, "partner_reference": {"FORGED"}, "merchant_id": {"FORGED"}}
+			values := url.Values{"_csrf": {csrf}, "confirm": {"yes"}, "name": {"FORGED"}, "email": {"admin@example.com"}, "password": {"forged-new-password"}, "current_password": {"fixture-password"}, "password_confirmation": {"forged-new-password"}, "order_id": {order}, "table_number": {"999"}, "review_comment": {"FORGED"}, "partner_reference": {"FORGED"}, "merchant_id": {"FORGED"}}
 			cookie := csrf
 			headers := http.Header{"Content-Type": {"application/x-www-form-urlencoded"}}
 			suffix := ""
@@ -450,7 +451,7 @@ func TestBrowserCSRFWithProductionCookiesAndSiblingOrigins(t *testing.T) {
 	}))
 	t.Cleanup(evil.Close)
 	evilURL, _ := url.Parse(evil.URL)
-	input := map[string]string{"base": f.app.Config.BaseURL, "observer": victim.URL, "sibling": "https://evil.procash.test:" + evilURL.Port(), "external": "https://attacker.other.test:" + evilURL.Port(), "payment": payment, "order": order, "request": request, "owner": owner}
+	input := map[string]string{"base": f.app.Config.BaseURL, "observer": victim.URL, "sibling": "https://evil.procash.test:" + evilURL.Port(), "external": "https://attacker.other.test:" + evilURL.Port(), "payment": payment, "order": order, "request": request, "owner": owner, "venue": venue}
 	raw, _ := json.Marshal(input)
 	script, _ := filepath.Abs("../../tests/csrf_browser.cjs")
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)

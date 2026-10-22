@@ -163,7 +163,7 @@ func (a *App) DeliverOne(ctx context.Context) (bool, error) {
 		err = a.Mailer.Send(ctx, msg)
 	}
 	if err == nil {
-		_, err = a.DB.Exec(ctx, `UPDATE mail_outbox SET status='SENT',sent_at=now(),payload=NULL,last_error='',lease_until=NULL WHERE id=$1`, msg.ID)
+		_, err = a.DB.Exec(ctx, `UPDATE mail_outbox SET status='SENT',sent_at=now(),payload=NULL,last_error='',lease_until=NULL WHERE id=$1 AND status='SENDING'`, msg.ID)
 		return true, err
 	}
 	a.logger.Warn("mail delivery failed", "message_id", msg.ID, "error", err)
@@ -172,7 +172,7 @@ func (a *App) DeliverOne(ctx context.Context) (bool, error) {
 		status = "FAILED"
 	}
 	delay := time.Minute * time.Duration(1<<min(attempts, 6))
-	_, saveErr := a.DB.Exec(ctx, `UPDATE mail_outbox SET status=$1,lease_until=NULL,next_attempt_at=now()+$2::interval,last_error='Не удалось отправить письмо. Проверьте SMTP и повторите отправку.' WHERE id=$3`, status, fmt.Sprintf("%d seconds", int(delay.Seconds())), msg.ID)
+	_, saveErr := a.DB.Exec(ctx, `UPDATE mail_outbox SET status=$1,lease_until=NULL,next_attempt_at=now()+$2::interval,last_error='Не удалось отправить письмо. Проверьте SMTP и повторите отправку.' WHERE id=$3 AND status='SENDING'`, status, fmt.Sprintf("%d seconds", int(delay.Seconds())), msg.ID)
 	return true, saveErr
 }
 func (a *App) RunWorker(ctx context.Context) {

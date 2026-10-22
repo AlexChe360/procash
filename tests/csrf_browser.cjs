@@ -117,6 +117,8 @@ async function main() {
     const admin = await login(adminContext, 'admin@example.test', 'admin');
     for (const source of [data.sibling, data.external]) {
       await forge(adminContext, source, `/admin/users/${data.owner}/disable`, {});
+      await forge(adminContext, source, `/admin/users/${data.owner}/delete`, { confirm: 'yes' });
+      await forge(adminContext, source, `/admin/restaurants/${data.venue}/delete`, { confirm: 'yes' });
       await forge(adminContext, source, `/admin/requests/${data.request}/approve`, {});
     }
     await admin.goto(data.base + '/admin');

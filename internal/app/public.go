@@ -16,7 +16,7 @@ func (a *App) publicTable(w http.ResponseWriter, r *http.Request) {
 	}
 	var v Restaurant
 	var t Table
-	err := a.DB.QueryRow(r.Context(), `SELECT t.id,t.table_number,r.id,r.name,r.slug FROM restaurant_tables t JOIN restaurants r ON r.id=t.restaurant_id WHERE t.qr_token=$1 AND t.active=true AND lower(r.slug)=lower($2)`, token, r.PathValue("slug")).Scan(&t.ID, &t.Number, &v.ID, &v.Name, &v.Slug)
+	err := a.DB.QueryRow(r.Context(), `SELECT t.id,t.table_number,r.id,r.name,r.slug FROM restaurant_tables t JOIN restaurants r ON r.id=t.restaurant_id WHERE t.qr_token=$1 AND r.deleted_at IS NULL AND t.active=true AND lower(r.slug)=lower($2)`, token, r.PathValue("slug")).Scan(&t.ID, &t.Number, &v.ID, &v.Name, &v.Slug)
 	if errors.Is(err, pgx.ErrNoRows) {
 		a.notFound(w, r)
 		return
@@ -82,7 +82,7 @@ func (a *App) createPayment(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback(r.Context())
 	var state string
 	var payable bool
-	err = tx.QueryRow(r.Context(), `SELECT status,total_amount>0 FROM restaurant_orders WHERE id=$1 FOR UPDATE`, id).Scan(&state, &payable)
+	err = tx.QueryRow(r.Context(), `SELECT o.status,o.total_amount>0 FROM restaurant_orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.id=$1 AND r.deleted_at IS NULL FOR UPDATE OF o,r`, id).Scan(&state, &payable)
 	if errors.Is(err, pgx.ErrNoRows) {
 		a.notFound(w, r)
 		return
@@ -117,7 +117,7 @@ func (a *App) paymentRecord(w http.ResponseWriter, r *http.Request) *Payment {
 		return nil
 	}
 	var p Payment
-	err := a.DB.QueryRow(r.Context(), `SELECT id,order_id,status,amount::text,created_at FROM payments WHERE id=$1`, id).Scan(&p.ID, &p.OrderID, &p.Status, &p.Amount, &p.CreatedAt)
+	err := a.DB.QueryRow(r.Context(), `SELECT p.id,p.order_id,p.status,p.amount::text,p.created_at FROM payments p JOIN restaurants r ON r.id=p.restaurant_id WHERE p.id=$1 AND r.deleted_at IS NULL`, id).Scan(&p.ID, &p.OrderID, &p.Status, &p.Amount, &p.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		a.notFound(w, r)
 		return nil
@@ -164,7 +164,7 @@ func (a *App) completePayment(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	var orderStatus, paymentStatus string
-	err = tx.QueryRow(r.Context(), `SELECT status FROM restaurant_orders WHERE id=$1 FOR UPDATE`, p.OrderID).Scan(&orderStatus)
+	err = tx.QueryRow(r.Context(), `SELECT o.status FROM restaurant_orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.id=$1 AND r.deleted_at IS NULL FOR UPDATE OF o,r`, p.OrderID).Scan(&orderStatus)
 	if err == nil {
 		err = tx.QueryRow(r.Context(), `SELECT status FROM payments WHERE id=$1 FOR UPDATE`, p.ID).Scan(&paymentStatus)
 	}

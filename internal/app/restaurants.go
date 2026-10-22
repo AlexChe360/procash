@@ -35,7 +35,7 @@ func (a *App) ownedRestaurant(w http.ResponseWriter, r *http.Request) *Restauran
 		return nil
 	}
 	u := CurrentUser(r)
-	v, err := scanRestaurant(a.DB.QueryRow(r.Context(), `SELECT `+restaurantColumns+` FROM restaurants r WHERE r.id=$1 AND ($2::boolean OR r.owner_id=$3)`, id, u.Admin(), u.ID))
+	v, err := scanRestaurant(a.DB.QueryRow(r.Context(), `SELECT `+restaurantColumns+` FROM restaurants r WHERE r.id=$1 AND r.deleted_at IS NULL AND ($2::boolean OR r.owner_id=$3)`, id, u.Admin(), u.ID))
 	if errors.Is(err, pgx.ErrNoRows) {
 		a.notFound(w, r)
 		return nil
@@ -54,11 +54,11 @@ func (a *App) loadMetrics(r *http.Request, p *Page) error {
 	u := CurrentUser(r)
 	today := time.Now().In(almaty)
 	start := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, almaty).AddDate(0, 0, -p.Days+1)
-	err := a.DB.QueryRow(r.Context(), `WITH owned AS (SELECT id,active FROM restaurants WHERE ($1::boolean OR owner_id=$2)) SELECT (SELECT count(*) FROM owned),(SELECT count(*) FROM owned WHERE active),(SELECT count(*) FROM restaurant_tables WHERE restaurant_id IN (SELECT id FROM owned)),(SELECT count(*) FROM restaurant_orders WHERE restaurant_id IN (SELECT id FROM owned) AND opened_at>=$3 AND opened_at<=now()),(SELECT count(*) FROM payments WHERE restaurant_id IN (SELECT id FROM owned) AND status='PAID' AND paid_at>=$3 AND paid_at<=now()),COALESCE((SELECT sum(amount)::text FROM payments WHERE restaurant_id IN (SELECT id FROM owned) AND status='PAID' AND paid_at>=$3 AND paid_at<=now()),'0')`, u.Admin(), u.ID, start).Scan(&p.Metrics.Venues, &p.Metrics.Active, &p.Metrics.Tables, &p.Metrics.Orders, &p.Metrics.PaidCount, &p.Metrics.Revenue)
+	err := a.DB.QueryRow(r.Context(), `WITH owned AS (SELECT id,active FROM restaurants WHERE deleted_at IS NULL AND ($1::boolean OR owner_id=$2)) SELECT (SELECT count(*) FROM owned),(SELECT count(*) FROM owned WHERE active),(SELECT count(*) FROM restaurant_tables WHERE restaurant_id IN (SELECT id FROM owned)),(SELECT count(*) FROM restaurant_orders WHERE restaurant_id IN (SELECT id FROM owned) AND opened_at>=$3 AND opened_at<=now()),(SELECT count(*) FROM payments WHERE restaurant_id IN (SELECT id FROM owned) AND status='PAID' AND paid_at>=$3 AND paid_at<=now()),COALESCE((SELECT sum(amount)::text FROM payments WHERE restaurant_id IN (SELECT id FROM owned) AND status='PAID' AND paid_at>=$3 AND paid_at<=now()),'0')`, u.Admin(), u.ID, start).Scan(&p.Metrics.Venues, &p.Metrics.Active, &p.Metrics.Tables, &p.Metrics.Orders, &p.Metrics.PaidCount, &p.Metrics.Revenue)
 	if err != nil {
 		return err
 	}
-	rows, err := a.DB.Query(r.Context(), `SELECT `+restaurantColumns+`,(SELECT count(*) FROM restaurant_orders o WHERE o.restaurant_id=r.id AND opened_at>=$3 AND opened_at<=now()),(SELECT count(*) FROM payments p WHERE p.restaurant_id=r.id AND p.status='PAID' AND p.paid_at>=$3 AND paid_at<=now()),COALESCE((SELECT sum(amount)::text FROM payments p WHERE p.restaurant_id=r.id AND p.status='PAID' AND p.paid_at>=$3 AND paid_at<=now()),'0') FROM restaurants r WHERE ($1::boolean OR r.owner_id=$2) ORDER BY r.created_at DESC LIMIT 200`, u.Admin(), u.ID, start)
+	rows, err := a.DB.Query(r.Context(), `SELECT `+restaurantColumns+`,(SELECT count(*) FROM restaurant_orders o WHERE o.restaurant_id=r.id AND opened_at>=$3 AND opened_at<=now()),(SELECT count(*) FROM payments p WHERE p.restaurant_id=r.id AND p.status='PAID' AND p.paid_at>=$3 AND paid_at<=now()),COALESCE((SELECT sum(amount)::text FROM payments p WHERE p.restaurant_id=r.id AND p.status='PAID' AND p.paid_at>=$3 AND paid_at<=now()),'0') FROM restaurants r WHERE r.deleted_at IS NULL AND ($1::boolean OR r.owner_id=$2) ORDER BY r.created_at DESC LIMIT 200`, u.Admin(), u.ID, start)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (a *App) adminDashboard(w http.ResponseWriter, r *http.Request) {
 		a.fail(w, r, err)
 		return
 	}
-	err := a.DB.QueryRow(r.Context(), `SELECT (SELECT count(*) FROM connection_requests WHERE status IN ('NEW','IN_REVIEW')),(SELECT count(*) FROM users WHERE role='USER'),(SELECT count(*) FROM mail_outbox WHERE status<>'SENT')`).Scan(&p.Metrics.NewRequests, &p.Metrics.Users, &p.Metrics.PendingMail)
+	err := a.DB.QueryRow(r.Context(), `SELECT (SELECT count(*) FROM connection_requests WHERE status IN ('NEW','IN_REVIEW')),(SELECT count(*) FROM users WHERE role='USER' AND deleted_at IS NULL),(SELECT count(*) FROM mail_outbox WHERE status NOT IN ('SENT','CANCELLED'))`).Scan(&p.Metrics.NewRequests, &p.Metrics.Users, &p.Metrics.PendingMail)
 	if err != nil {
 		a.fail(w, r, err)
 		return
@@ -96,6 +96,9 @@ func (a *App) adminDashboard(w http.ResponseWriter, r *http.Request) {
 }
 func (a *App) restaurants(w http.ResponseWriter, r *http.Request) {
 	p := Page{Title: "Заведения", Active: "restaurants"}
+	if r.URL.Query().Get("deleted") == "1" {
+		p.Message = "Заведение удалено. Его QR-ссылки больше не работают."
+	}
 	if err := a.loadMetrics(r, &p); err != nil {
 		a.fail(w, r, err)
 		return

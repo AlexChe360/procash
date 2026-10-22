@@ -98,7 +98,7 @@ func Money(s string) string {
 	return strings.ReplaceAll(s, ".", ",") + " ₸"
 }
 func StatusLabel(s string) string {
-	labels := map[string]string{"NEW": "Новая", "IN_REVIEW": "На рассмотрении", "APPROVED": "Одобрена", "REJECTED": "Отклонена", "DRAFT": "Черновик", "READY_FOR_REVIEW": "На проверке ProCash", "NEEDS_CHANGES": "Нужны изменения", "UNDER_FREEDOM_REVIEW": "На рассмотрении Freedom Pay", "SUBMITTED_TO_FREEDOM": "Отправлена в Freedom Pay", "IN_PROGRESS": "В работе", "ACTIVE": "Активно", "OPEN": "Открыт", "PAID": "Оплачен", "PENDING": "Ожидает", "SENDING": "Отправляется", "SENT": "Доставлено SMTP-серверу", "FAILED": "Ошибка", "CREATED": "Создан"}
+	labels := map[string]string{"NEW": "Новая", "IN_REVIEW": "На рассмотрении", "APPROVED": "Одобрена", "REJECTED": "Отклонена", "DRAFT": "Черновик", "READY_FOR_REVIEW": "На проверке ProCash", "NEEDS_CHANGES": "Нужны изменения", "UNDER_FREEDOM_REVIEW": "На рассмотрении Freedom Pay", "SUBMITTED_TO_FREEDOM": "Отправлена в Freedom Pay", "IN_PROGRESS": "В работе", "ACTIVE": "Активно", "OPEN": "Открыт", "PAID": "Оплачен", "PENDING": "Ожидает", "SENDING": "Отправляется", "SENT": "Доставлено SMTP-серверу", "CANCELLED": "Отменено", "FAILED": "Ошибка", "CREATED": "Создан"}
 	if v, ok := labels[s]; ok {
 		return v
 	}
@@ -363,7 +363,11 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /admin/requests/{request}", a.admin(a.request))
 	mux.HandleFunc("POST /admin/requests/{request}/{action}", a.admin(a.reviewRequest))
 	mux.HandleFunc("GET /admin/users", a.admin(a.users))
+	mux.HandleFunc("GET /admin/users/{user}/delete", a.admin(a.deleteUser))
+	mux.HandleFunc("POST /admin/users/{user}/delete", a.admin(a.deleteUser))
 	mux.HandleFunc("POST /admin/users/{user}/{action}", a.admin(a.manageUser))
+	mux.HandleFunc("GET /admin/restaurants/{id}/delete", a.admin(a.deleteRestaurant))
+	mux.HandleFunc("POST /admin/restaurants/{id}/delete", a.admin(a.deleteRestaurant))
 	mux.HandleFunc("GET /admin/freedom-pay/applications", a.admin(a.adminIntegrations))
 	mux.HandleFunc("GET /admin/freedom-pay/applications/{application}", a.admin(a.adminFreedom))
 	mux.HandleFunc("POST /admin/freedom-pay/applications/{application}/{action}", a.admin(a.reviewFreedom))
@@ -417,7 +421,7 @@ func (a *App) Handler() http.Handler {
 		}
 		if cookie, err := r.Cookie(a.cookieName("session")); err == nil && len(cookie.Value) == 43 {
 			var u User
-			err = a.DB.QueryRow(r.Context(), `SELECT u.id,u.email,u.name,u.phone,u.role,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.enabled=true AND (u.temporary_password_expires_at IS NULL OR u.temporary_password_expires_at>now())`, hashToken(cookie.Value)).Scan(&u.ID, &u.Email, &u.Name, &u.Phone, &u.Role, &u.MustChange)
+			err = a.DB.QueryRow(r.Context(), `SELECT u.id,u.email,u.name,u.phone,u.role,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=$1 AND s.expires_at>now() AND u.enabled=true AND u.deleted_at IS NULL AND (u.temporary_password_expires_at IS NULL OR u.temporary_password_expires_at>now())`, hashToken(cookie.Value)).Scan(&u.ID, &u.Email, &u.Name, &u.Phone, &u.Role, &u.MustChange)
 			if err == nil {
 				r = r.WithContext(context.WithValue(r.Context(), userKey, &u))
 			} else if !errors.Is(err, pgx.ErrNoRows) {

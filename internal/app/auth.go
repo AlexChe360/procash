@@ -51,7 +51,7 @@ func (a *App) login(w http.ResponseWriter, r *http.Request) {
 	var u User
 	var hash string
 	var enabled, expired bool
-	err = a.DB.QueryRow(r.Context(), `SELECT id,email,name,phone,role,must_change_password,password_hash,enabled,COALESCE(temporary_password_expires_at<=now(),false) FROM users WHERE lower(email)=$1`, email).Scan(&u.ID, &u.Email, &u.Name, &u.Phone, &u.Role, &u.MustChange, &hash, &enabled, &expired)
+	err = a.DB.QueryRow(r.Context(), `SELECT id,email,name,phone,role,must_change_password,password_hash,enabled,COALESCE(temporary_password_expires_at<=now(),false) FROM users WHERE lower(email)=$1 AND deleted_at IS NULL`, email).Scan(&u.ID, &u.Email, &u.Name, &u.Phone, &u.Role, &u.MustChange, &hash, &enabled, &expired)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		a.fail(w, r, err)
 		return
@@ -114,7 +114,7 @@ func (a *App) profile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	var hash, currentEmail string
-	err = tx.QueryRow(r.Context(), `SELECT password_hash,email FROM users WHERE id=$1 FOR UPDATE`, u.ID).Scan(&hash, &currentEmail)
+	err = tx.QueryRow(r.Context(), `SELECT password_hash,email FROM users WHERE id=$1 AND deleted_at IS NULL FOR UPDATE`, u.ID).Scan(&hash, &currentEmail)
 	if err != nil {
 		a.fail(w, r, err)
 		return
@@ -187,7 +187,7 @@ func (a *App) password(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback(r.Context())
 	var hash string
-	err = tx.QueryRow(r.Context(), `SELECT password_hash FROM users WHERE id=$1 FOR UPDATE`, u.ID).Scan(&hash)
+	err = tx.QueryRow(r.Context(), `SELECT password_hash FROM users WHERE id=$1 AND deleted_at IS NULL FOR UPDATE`, u.ID).Scan(&hash)
 	if err != nil {
 		a.fail(w, r, err)
 		return

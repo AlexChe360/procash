@@ -42,7 +42,7 @@ func (a *App) apiOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	var o Order
 	u := CurrentUser(r)
-	err = a.DB.QueryRow(r.Context(), `SELECT o.id,o.order_number,o.status,o.total_amount::text,o.opened_at FROM restaurant_orders o JOIN restaurant_tables t ON t.id=o.restaurant_table_id JOIN restaurants r ON r.id=o.restaurant_id WHERE r.id=$1 AND ($2::boolean OR r.owner_id=$3) AND t.table_number=$4 AND t.active=true AND o.status='OPEN' ORDER BY o.opened_at DESC LIMIT 1`, restaurant, u.Admin(), u.ID, number).Scan(&o.ID, &o.Number, &o.Status, &o.Total, &o.OpenedAt)
+	err = a.DB.QueryRow(r.Context(), `SELECT o.id,o.order_number,o.status,o.total_amount::text,o.opened_at FROM restaurant_orders o JOIN restaurant_tables t ON t.id=o.restaurant_table_id JOIN restaurants r ON r.id=o.restaurant_id WHERE r.id=$1 AND r.deleted_at IS NULL AND ($2::boolean OR r.owner_id=$3) AND t.table_number=$4 AND t.active=true AND o.status='OPEN' ORDER BY o.opened_at DESC LIMIT 1`, restaurant, u.Admin(), u.ID, number).Scan(&o.ID, &o.Number, &o.Status, &o.Total, &o.OpenedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		problem(404, "ORDER_NOT_FOUND")
 		return
