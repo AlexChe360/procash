@@ -70,11 +70,16 @@ func run() error {
 	}
 	config, err := app.LoadConfig()
 	if err != nil {
+		if command == "check-config" {
+			reportConfigurationError(err)
+		}
 		return err
 	}
 	if command == "check-config" {
 		if config.SMTPHost == "" {
-			return errors.New("SMTP_HOST or MAIL_HOST is required to deliver application notifications")
+			err := errors.New("SMTP_HOST or MAIL_HOST is required to deliver application notifications")
+			reportConfigurationError(err)
+			return err
 		}
 		fmt.Println("Production configuration checked; notification email is configured.")
 		return nil
@@ -145,4 +150,9 @@ func run() error {
 		return err
 	}
 	return nil
+}
+
+func reportConfigurationError(err error) {
+	message := strings.NewReplacer("%", "%25", "\r", "%0D", "\n", "%0A").Replace(err.Error())
+	fmt.Printf("::error title=Production configuration::%s\n", message)
 }
