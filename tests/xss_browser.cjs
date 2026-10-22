@@ -81,6 +81,23 @@ async function main() {
     assert.equal(await page.locator('h1').count(), 1);
     assert.equal(await page.locator('header .header-button').getAttribute('href'), '/connect');
     assert.equal(await page.locator('header').evaluate((e) => getComputedStyle(e).display), 'block');
+    const homepageImages = await page.locator('img').evaluateAll((images) => images.map((image) => ({
+      src: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0,
+    })));
+    assert.ok(homepageImages.length > 0, 'Homepage must retain its payment logos');
+    assert.deepEqual(homepageImages.filter((image) => !image.loaded), [], 'Homepage images must load');
+    assert.deepEqual(responses.filter((response) => response.status() >= 400).map((response) => ({
+      url: response.url(), status: response.status(),
+    })), [], 'Homepage and its local resources must load successfully');
+    const initialViewport = page.viewportSize();
+    for (const width of [1440, 785, 390]) {
+      await page.setViewportSize({ width, height: 940 });
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert.ok(await page.locator('.payment-logos img').isVisible(), `Payment logo is hidden at ${width}px`);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Homepage overflows at ${width}px`);
+    }
+    await page.setViewportSize(initialViewport);
+    console.log('Homepage images and local resources loaded; layout checked at 1440, 785 and 390px.');
     await assertSafe(page, 'static homepage');
     await page.goto(data.base + '/connect');
     await page.waitForFunction(() => typeof htmx !== 'undefined');
