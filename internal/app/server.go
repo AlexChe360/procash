@@ -303,6 +303,12 @@ func (a *App) Handler() http.Handler {
 	mux := http.NewServeMux()
 	assets, _ := fs.Sub(web.Files, "static")
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServerFS(assets)))
+	documents, _ := fs.Sub(web.Files, "documents")
+	documentFiles := http.StripPrefix("/documents/", http.FileServerFS(documents))
+	mux.HandleFunc("GET /documents/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", "inline")
+		documentFiles.ServeHTTP(w, r)
+	})
 	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		data, err := web.Files.ReadFile("static/favicon.ico")
 		if err != nil {
