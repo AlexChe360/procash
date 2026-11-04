@@ -84,7 +84,6 @@ async function main() {
     const homepageImages = await page.locator('img').evaluateAll((images) => images.map((image) => ({
       src: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0,
     })));
-    assert.ok(homepageImages.length > 0, 'Homepage must retain its payment logos');
     assert.deepEqual(homepageImages.filter((image) => !image.loaded), [], 'Homepage images must load');
     assert.deepEqual(responses.filter((response) => response.status() >= 400).map((response) => ({
       url: response.url(), status: response.status(),
@@ -93,7 +92,6 @@ async function main() {
     for (const width of [1440, 785, 390]) {
       await page.setViewportSize({ width, height: 940 });
       await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-      assert.ok(await page.locator('.payment-logos img').isVisible(), `Payment logo is hidden at ${width}px`);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Homepage overflows at ${width}px`);
     }
     await page.setViewportSize(initialViewport);

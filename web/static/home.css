@@ -1139,7 +1139,6 @@
             grid-template-columns:
         minmax(220px, 1.3fr)
         minmax(160px, 1fr)
-        minmax(160px, 1fr)
         minmax(190px, 1fr);
             align-items: start;
             gap: 48px;
@@ -1215,30 +1214,6 @@
             color: #777777;
             font-size: 13px;
             line-height: 1.45;
-        }
-
-        .payment-logos {
-            display: inline-flex;
-            align-items: center;
-            gap: 14px;
-            min-height: 46px;
-            padding: 9px 14px;
-            background: #ffffff;
-            border-radius: var(--radius-small);
-        }
-
-        .payment-logos img {
-            display: block;
-            width: auto;
-            max-width: 100%;
-            object-fit: contain;
-        }
-
-        .footer-note {
-            margin: 14px 0 0;
-            color: #777777;
-            font-size: 12px;
-            line-height: 1.5;
         }
 
         /* =========================
