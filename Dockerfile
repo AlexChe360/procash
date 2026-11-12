@@ -8,7 +8,7 @@ RUN --mount=type=secret,id=build_ca \
 COPY web ./web
 RUN npm run build
 
-FROM golang:1.27.3-alpine AS build
+FROM golang:1.27.4-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=secret,id=build_ca \
