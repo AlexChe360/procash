@@ -1,0 +1,142 @@
+name: Deploy ProCash Rails
+on:
+  push:
+    branches: [codex/rails-vps-deployment]
+    paths: ['rails/**', 'deploy/rails_*', '.github/workflows/rails-release.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: procash-rails-release
+  cancel-in-progress: false
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: rails
+    env:
+      RAILS_ENV: test
+      PROCASH_DB_HOST: 127.0.0.1
+      PROCASH_DB_PORT: 5432
+      PROCASH_DB_USER: procash_rails
+      PROCASH_DB_PASSWORD: test-only-password
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: procash_rails
+          POSTGRES_PASSWORD: test-only-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U procash_rails"
+          --health-interval=5s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update -qq && sudo apt-get install -y libpq-dev libargon2-1
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: rails
+          ruby-version: '4.0.6'
+          bundler-cache: true
+      - run: bin/rails db:create db:migrate
+      - run: bin/rails zeitwerk:check test
+      - name: Validate deployment helpers
+        working-directory: .
+        run: |
+          bash -n deploy/rails_deploy.sh
+          python3 -m py_compile deploy/rails_prepare.py
+  build:
+    needs: test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@v4
+      - name: Set image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}-rails" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v7
+        id: build
+        with:
+          context: rails
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.image.outputs.name }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=rails
+          cache-to: type=gha,scope=rails,mode=max
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.VPS_DEPLOY_PATH || '/opt/procash' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure existing SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${SSH_PRIVATE_KEY:?Missing VPS_SSH_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing VPS_KNOWN_HOSTS}"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload release helpers
+        id: upload
+        run: |
+          set -euo pipefail
+          [[ "$VPS_PORT" =~ ^[0-9]+$ ]]
+          options=(-i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15)
+          remote_dir=$(ssh "${options[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'mktemp -d /tmp/procash-rails.XXXXXXXX')
+          [[ "$remote_dir" =~ ^/tmp/procash-rails\.[A-Za-z0-9]+$ ]]
+          echo "directory=$remote_dir" >> "$GITHUB_OUTPUT"
+          scp "${options[@]}" -P "$VPS_PORT" deploy/rails_deploy.sh deploy/rails_prepare.py rails/deploy/compose.production.yml "$VPS_USER@$VPS_HOST:$remote_dir/"
+      - name: Stage Rails and switch after successful checks
+        env:
+          IMAGE_DIGEST: ${{ needs.build.outputs.digest }}
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ADMIN_BOOTSTRAP_PASSWORD: ${{ secrets.ADMIN_BOOTSTRAP_PASSWORD }}
+          REMOTE_DIR: ${{ steps.upload.outputs.directory }}
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          image="ghcr.io/${GITHUB_REPOSITORY,,}-rails@$IMAGE_DIGEST"
+          printf -v remote_command 'bash %q %q %q %q %q' "$REMOTE_DIR/rails_deploy.sh" "$DEPLOY_PATH" "$image" "$GITHUB_SHA" "$REGISTRY_USER"
+          printf '%s\n%s\n' "$REGISTRY_TOKEN" "$ADMIN_BOOTSTRAP_PASSWORD" | ssh -T -i "$HOME/.ssh/id_ed25519" -p "$VPS_PORT" \
+            -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 \
+            -o ServerAliveInterval=15 -o ServerAliveCountMax=4 "$VPS_USER@$VPS_HOST" "$remote_command"
+      - name: Remove temporary helpers
+        if: always() && steps.upload.outputs.directory != ''
+        env:
+          REMOTE_DIR: ${{ steps.upload.outputs.directory }}
+        run: |
+          set -euo pipefail
+          [[ "$REMOTE_DIR" =~ ^/tmp/procash-rails\.[A-Za-z0-9]+$ ]]
+          printf -v command 'rm -f -- %q %q %q; rmdir -- %q' "$REMOTE_DIR/rails_deploy.sh" "$REMOTE_DIR/rails_prepare.py" "$REMOTE_DIR/compose.production.yml" "$REMOTE_DIR"
+          ssh -T -i "$HOME/.ssh/id_ed25519" -p "$VPS_PORT" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "$command"
+      - name: Remove runner credentials
+        if: always()
+        run: rm -f -- ~/.ssh/id_ed25519 ~/.ssh/known_hosts

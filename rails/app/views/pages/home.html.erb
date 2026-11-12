@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+            name="description"
+            content="ProCash — гость сканирует QR-код на столе, видит свой счёт из POS-системы ресторана и оплачивает его на странице банка-эквайера."
+    >
+
+    <meta property="og:title" content="ProCash — оплата счёта в ресторане по QR-коду">
+    <meta property="og:description"
+          content="Счёт из POS-системы открывается по QR-коду на телефоне гостя. Оплата проходит на стороне банка.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ru_KZ">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    >
+
+    <title>ProCash — оплата счёта в ресторане по QR-коду</title>
+
+    <link rel="stylesheet" href="/assets/home.css">
+    <%= stylesheet_link_tag "assistant" %>
+    <%= csrf_meta_tags %>
+    <%= javascript_importmap_tags %>
+</head>
+
+<body>
+<a class="skip-link" href="#main">Перейти к содержимому</a>
+
+<header class="header">
+    <div class="container header-content">
+        <a class="logo" href="/">
+            Pro<span>Cash</span>
+        </a>
+
+        <nav class="navigation" aria-label="Основная навигация">
+            <a href="#how-it-works">Как работает</a>
+            <a href="#restaurant">Ресторану</a>
+            <a href="#setup">Подключение</a>
+            <a href="#faq">Вопросы</a>
+            <a class="documentation-link" href="/documentation">Документация</a>
+            <a class="login-link" href="/login">
+                Войти
+            </a>
+            <a class="header-button" href="/connect">
+                Подключить ресторан
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main id="main">
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Оплата счёта по QR-коду на столе
+                </div>
+
+                <h1>
+                    Гость закрывает счёт сам,
+                    <span>не дожидаясь официанта</span>
+                </h1>
+
+                <p class="hero-description">
+                    QR-код на столе открывает актуальный счёт из вашей POS-системы.
+                    Гость проверяет позиции, добавляет чаевые и платит на странице
+                    банка-эквайера — приложение и регистрация не нужны.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="button button-primary" href="/connect">
+                        Подключить ресторан
+                    </a>
+
+                    <a class="button button-secondary" href="#how-it-works">
+                        Как это работает
+                    </a>
+                </div>
+
+                <ul class="hero-facts">
+                    <li>Счёт берётся из POS в момент сканирования</li>
+                    <li>Данные карты вводятся на стороне банка</li>
+                    <li>После оплаты стол закрывается автоматически</li>
+                </ul>
+            </div>
+
+            <div class="device-wrapper">
+                <div class="device" role="img"
+                     aria-label="Экран телефона гостя: страница оплаты счёта ProCash, открытая в браузере">
+
+                    <div class="device-frame">
+                        <div class="device-island"></div>
+
+                        <div class="device-screen">
+
+                            <div class="ios-status">
+                                <span class="ios-time">13:24</span>
+
+                                <div class="ios-indicators">
+                                    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"
+                                         aria-hidden="true">
+                                        <rect x="0" y="8" width="3" height="4" rx="1"></rect>
+                                        <rect x="5" y="5.5" width="3" height="6.5" rx="1"></rect>
+                                        <rect x="10" y="3" width="3" height="9" rx="1"></rect>
+                                        <rect x="15" y="0" width="3" height="12" rx="1" opacity="0.3"></rect>
+                                    </svg>
+
+                                    <svg width="17" height="13" viewBox="0 0 17 13" fill="none"
+                                         stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+                                         aria-hidden="true">
+                                        <path d="M1.3 3.6a11 11 0 0 1 14.4 0"></path>
+                                        <path d="M4 6.5a7 7 0 0 1 9 0"></path>
+                                        <path d="M6.7 9.3a3.2 3.2 0 0 1 3.6 0"></path>
+                                        <circle cx="8.5" cy="11.4" r="0.6" fill="currentColor" stroke="none"></circle>
+                                    </svg>
+
+                                    <svg width="28" height="13" viewBox="0 0 28 13" fill="none" aria-hidden="true">
+                                        <rect x="0.6" y="0.6" width="23" height="11.8" rx="3.6"
+                                              stroke="currentColor" opacity="0.35"></rect>
+                                        <rect x="2.4" y="2.4" width="15" height="8.2" rx="2.2"
+                                              fill="currentColor"></rect>
+                                        <path d="M25.4 4.6c1.3.5 1.3 3.3 0 3.8z" fill="currentColor"
+                                              opacity="0.4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="ios-page">
+                                <div class="venue">
+                                    <div class="venue-logo">A</div>
+
+                                    <div class="venue-meta">
+                                        <strong>Кофейня «Алма»</strong>
+                                        <span>Стол 5 · Счёт № 1042 · Официант Дана</span>
+                                    </div>
+                                </div>
+
+                                <div class="bill">
+                                    <div class="bill-head">
+                                        <div>
+                                            <p class="bill-label">Открытый счёт</p>
+                                            <h3>6 600 ₸</h3>
+                                        </div>
+
+                                        <span class="bill-sync">Обновлён в 13:23</span>
+                                    </div>
+
+                                    <div class="bill-line">
+                                        <div>
+                                            <strong>Капучино 400 мл</strong>
+                                            <span>2 × 1 200 ₸</span>
+                                        </div>
+                                        <strong>2 400 ₸</strong>
+                                    </div>
+
+                                    <div class="bill-line">
+                                        <div>
+                                            <strong>Сырники со сметаной</strong>
+                                            <span>1 × 2 200 ₸</span>
+                                        </div>
+                                        <strong>2 200 ₸</strong>
+                                    </div>
+
+                                    <div class="bill-line">
+                                        <div>
+                                            <strong>Апельсиновый фреш</strong>
+                                            <span>1 × 1 400 ₸</span>
+                                        </div>
+                                        <strong>1 400 ₸</strong>
+                                    </div>
+
+                                    <div class="bill-subtotal">
+                                        <span>Позиции</span>
+                                        <span>6 000 ₸</span>
+                                    </div>
+
+                                    
+                                    
+
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+
+                                    
+                                    
+                                    
+                                    
+
+                                    <div class="bill-total">
+                                        <span>К оплате</span>
+                                        <strong>6 600 ₸</strong>
+                                    </div>
+                                </div>
+
+                                <button class="pay-button" type="button" tabindex="-1">
+                                    Оплатить 6 600 ₸
+                                </button>
+
+                                <p class="pay-note">
+                                    Оплата проходит на защищённой странице банка-эквайера.
+                                    ProCash не получает данные карты.
+                                </p>
+                            </div>
+
+                            <div class="ios-browser">
+                                <div class="ios-url">
+                                    <span class="ios-url-aa">аА</span>
+
+                                    <span class="ios-url-text">
+                    <svg width="9" height="11" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                      <path d="M3 5.2V3.4a2 2 0 0 1 4 0v1.8" stroke="currentColor" stroke-width="1.2"></path>
+                      <rect x="1.1" y="5" width="7.8" height="6.3" rx="1.7" fill="currentColor"></rect>
+                    </svg>
+                    procash.kz/q/token
+                  </span>
+
+                                    <svg class="ios-url-reload" width="13" height="13" viewBox="0 0 14 14" fill="none"
+                                         stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                                         aria-hidden="true">
+                                        <path d="M12.2 7a5.2 5.2 0 1 1-1.7-3.9"></path>
+                                        <path d="M12.7 0.9v3.3H9.4"></path>
+                                    </svg>
+                                </div>
+
+                                <div class="ios-home"></div>
+                            </div>
+
+                            <div class="device-glare"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="device-caption">
+                    Так счёт выглядит на телефоне гостя после сканирования QR-кода
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="section">
+        <div class="container">
+            <div class="section-heading">
+                <span>Сценарий за столом</span>
+                <h2>Четыре шага, один из них делает гость</h2>
+
+                <p>
+                    Официант продолжает работать в POS-системе как обычно —
+                    менять привычный процесс не нужно.
+                </p>
+            </div>
+
+            <ol class="steps">
+                <li class="step">
+                    <div class="step-number">1</div>
+                    <h3>Гость сканирует QR</h3>
+                    <p>
+                        Табличка с QR-кодом стоит на столе. Код привязан
+                        к заведению и номеру стола, камера открывает страницу
+                        в браузере.
+                    </p>
+                </li>
+
+                <li class="step">
+                    <div class="step-number">2</div>
+                    <h3>Открывается счёт</h3>
+                    <p>
+                        ProCash запрашивает у POS-системы актуальный состав заказа.
+                        Если официант добавил позицию минуту назад — она уже в счёте.
+                    </p>
+                </li>
+
+                <li class="step">
+                    <div class="step-number">3</div>
+                    <h3>Гость оплачивает</h3>
+                    <p>
+                        Гость выбирает чаевые и переходит на платёжную страницу
+                        банка-эквайера. Реквизиты карты вводятся там.
+                    </p>
+                </li>
+
+                <li class="step">
+                    <div class="step-number">4</div>
+                    <h3>Стол закрывается</h3>
+                    <p>
+                        Банк подтверждает платёж, ProCash передаёт статус в POS,
+                        счёт закрывается и фискальный чек формируется на стороне
+                        ресторана.
+                    </p>
+                </li>
+            </ol>
+        </div>
+    </section>
+
+    <section id="restaurant" class="section section-dark">
+        <div class="container">
+            <div class="section-heading section-heading-light">
+                <span>Что меняется в зале</span>
+                <h2>Столы освобождаются быстрее, касса не меняется</h2>
+            </div>
+
+            <div class="benefits">
+                <article class="benefit">
+                    <h3>Убирает ожидание в конце визита</h3>
+                    <p>
+                        Дольше всего гость обычно ждёт не еду, а счёт и терминал.
+                        Оплата по QR убирает оба ожидания из процесса.
+                    </p>
+                </article>
+
+                <article class="benefit">
+                    <h3>Чаевые приходят официанту</h3>
+                    <p>
+                        Гость выбирает процент на той же странице.
+                        Сумма чаевых видна в отчёте по смене.
+                    </p>
+                </article>
+
+                <article class="benefit">
+                    <h3>Данные карты не проходят через нас</h3>
+                    <p>
+                        Ввод реквизитов происходит на странице банка-эквайера.
+                        ProCash получает только статус платежа.
+                    </p>
+                </article>
+
+                <article class="benefit">
+                    <h3>Один источник правды — POS</h3>
+                    <p>
+                        Суммы не вводятся вручную: счёт берётся из системы
+                        автоматизации, туда же возвращается статус оплаты.
+                    </p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="setup" class="section">
+        <div class="container setup-content">
+            <div class="setup-main">
+                <div class="section-heading">
+                    <span>Подключение</span>
+                    <h2>Что нужно от ресторана</h2>
+                </div>
+
+                <ul class="checklist">
+                    <li>
+                        <strong>POS-система с доступом к API</strong>
+                        <span>
+              Настраиваем интеграцию с вашей системой автоматизации —
+              уточните название при заявке.
+            </span>
+                    </li>
+
+                    <li>
+                        <strong>Договор эквайринга с банком</strong>
+                        <span>
+              Подойдёт действующий договор. Если его нет, поможем
+              собрать документы для подачи.
+            </span>
+                    </li>
+
+                    <li>
+                        <strong>QR-таблички на столы</strong>
+                        <span>
+              Генерируем коды по номерам столов, макет для печати
+              передаём в вашем оформлении.
+            </span>
+                    </li>
+                </ul>
+            </div>
+
+            <aside class="pricing">
+                <h3>Сколько это стоит</h3>
+
+                <dl class="pricing-rows">
+                    <div>
+                        <dt>Комиссия за платёж</dt>
+                        <dd>По тарифу вашего банка-эквайера</dd>
+                    </div>
+
+                    <div>
+                        <dt>Подключение точки</dt>
+                        <dd>Бесплатно на период пилота</dd>
+                    </div>
+
+                    <div>
+                        <dt>Абонентская плата</dt>
+                        <dd>Фиксированная за точку в месяц</dd>
+                    </div>
+                </dl>
+
+                <p class="pricing-note">
+                    Деньги приходят на расчётный счёт ресторана напрямую
+                    от банка-эквайера — ProCash не является получателем платежа.
+                </p>
+
+                <a class="button button-dark pricing-button" href="#connect">
+                    Запросить условия
+                </a>
+            </aside>
+        </div>
+    </section>
+
+    <section id="faq" class="section section-muted">
+        <div class="container">
+            <div class="section-heading">
+                <span>Частые вопросы</span>
+                <h2>То, что спрашивают до пилота</h2>
+            </div>
+
+            <div class="faq">
+                <details>
+                    <summary>Гостю нужно скачивать приложение?</summary>
+                    <p>
+                        Нет. QR-код открывает обычную веб-страницу в браузере телефона.
+                        Регистрация и вход не требуются.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>Что будет, если гость закроет страницу во время оплаты?</summary>
+                    <p>
+                        Счёт останется открытым в POS-системе. Страницу можно открыть
+                        повторно тем же QR-кодом, платёж не задваивается: ProCash
+                        проверяет статус по идентификатору счёта.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>Можно разделить счёт между гостями?</summary>
+                    <p>
+                        Да, если разделение поддерживает ваша POS-система: ProCash
+                        показывает те же части счёта, что и касса. Оплата каждой
+                        части проходит отдельным платежом.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>Кто оформляет возврат?</summary>
+                    <p>
+                        Возврат инициирует ресторан на своей стороне, деньги
+                        возвращает банк-эквайер по правилам платёжных систем.
+                        Порядок описан в договоре-оферте.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>Как быть с фискальным чеком?</summary>
+                    <p>
+                        Чек формирует POS-система ресторана после подтверждения
+                        платежа — так же, как при оплате картой на терминале.
+                    </p>
+                </details>
+
+                <details>
+                    <summary>Что происходит, если POS-система недоступна?</summary>
+                    <p>
+                        Страница показывает, что счёт временно недоступен,
+                        и предлагает позвать официанта. Оплата по неактуальной
+                        сумме не запускается.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <section id="connect" class="section connect">
+        <div class="container connect-content">
+            <div>
+                <span class="connect-label">Для ресторанов</span>
+
+                <h2>
+                    Подключите оплату заказов по QR-коду
+                </h2>
+
+                <p>
+                    Оставьте заявку на подключение ресторана. Мы свяжемся
+                    с вами и предоставим доступ к личному кабинету.
+                </p>
+            </div>
+
+            <a class="button button-dark" href="/connect">
+                Отправить заявку
+            </a>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+
+        <div class="footer-brand">
+            <a class="logo footer-logo" href="/">
+                Pro<span>Cash</span>
+            </a>
+
+            <p class="footer-description">
+                Сервис оплаты ресторанных счетов по QR-коду.
+                Платежи проводит банк-эквайер.
+            </p>
+
+            
+            
+            
+            
+
+            <p class="footer-copyright">
+                © 2026 ProCash
+            </p>
+        </div>
+
+        <div class="footer-column">
+            <h3 class="footer-title">Документы</h3>
+
+            <nav class="footer-navigation" aria-label="Документы">
+                <a href="https://procash.kz/documents/oferta.pdf"
+                   target="_blank" rel="noopener noreferrer">
+                    Публичный договор-оферта
+                </a>
+                <a href="https://procash.kz/documents/privacy-policy.pdf"
+                   target="_blank" rel="noopener noreferrer">
+                    Политика конфиденциальности
+                </a>
+                <a href="https://procash.kz/documents/payment-procedure.pdf"
+                   target="_blank" rel="noopener noreferrer">
+                    Порядок оплаты и возврата
+                </a>
+            </nav>
+        </div>
+
+        <div class="footer-column">
+            <h3 class="footer-title">Контакты</h3>
+
+            <div class="footer-contacts">
+                <a href="mailto:info@procash.kz">info@procash.kz</a>
+                <a href="tel:+77066148100">+7 706 614 81 00</a>
+                <span>Пн–Пт, 10:00–19:00 (UTC+5)</span>
+            </div>
+        </div>
+
+    </div>
+</footer>
+<%= render "shared/assistant" %>
+</body>
+</html>

@@ -1,0 +1,1 @@
+DROP TABLE merchant_invitation_outbox;

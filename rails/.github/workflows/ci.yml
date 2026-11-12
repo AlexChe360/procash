@@ -1,0 +1,2 @@
+# The repository workflow is ../../../../.github/workflows/ci.yml.
+# GitHub does not execute workflows nested inside the rails subdirectory.

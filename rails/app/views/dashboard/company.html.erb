@@ -1,0 +1,21 @@
+<p class="muted"><a href="/dashboard">Компании</a> / <%= @merchant.legal_name %></p>
+<h1><%= @merchant.legal_name %></h1>
+<p class="muted">БИН/ИИН <%= @merchant.bin_iin %></p>
+<% if @membership.manages? %>
+  <details class="card company-create" <%= "open" if @error %>>
+    <summary><span><strong>Новая торговая точка</strong><small>Добавьте ресторан, кафе или филиал компании</small></span><span class="company-create-open">+ Добавить торговую точку</span><span class="company-create-close">Скрыть форму ↑</span></summary>
+    <%= form_with url: "/dashboard/merchants/#{@merchant.id}/outlets", class: "company-create-form" do %>
+      <div class="field-grid">
+        <label>Название<%= text_field_tag :name, @new_outlet&.name, required: true, placeholder: "Например, WOK WOK на Абая" %></label>
+        <label>Город<%= text_field_tag :city, @new_outlet&.city, required: true, placeholder: "Алматы" %></label>
+        <label>Адрес<%= text_field_tag :address, @new_outlet&.address, required: true, placeholder: "Улица, дом" %></label>
+        <div class="outlet-page"><label for="new-outlet-pos">Кассовая система</label><%= render "shared/select", name: :pos_system, id: "new-outlet-pos", label: "Кассовая система", placeholder: "Не выбрана", required: false, options: options_for_select([["iiko", "iiko"], ["r_keeper", "r_keeper"], ["Другая", "other"]], @new_outlet&.pos_system) %></div>
+      </div>
+      <div class="actions"><%= button_tag "Создать торговую точку", type: :submit %></div>
+    <% end %>
+  </details>
+<% end %>
+<section class="card"><h2>Торговые точки <span class="muted">· <%= @outlets.size %></span></h2>
+<% if @outlets.empty? %><p class="muted"><%= @membership.manages? ? "Пока нет торговых точек. Нажмите «Добавить торговую точку» выше." : "В компании пока нет торговых точек." %></p>
+<% else %><table><thead><tr><th>Название</th><th>Город</th><th>POS</th><th>Статус</th></tr></thead><tbody><% @outlets.each do |outlet| %><tr><td><a href="/dashboard/merchants/<%= @merchant.id %>/outlets/<%= outlet.id %>"><%= outlet.name %> ↗</a></td><td><%= outlet.city %></td><td><%= outlet.pos_system %></td><td><span class="badge"><%= outlet.status_label %></span></td></tr><% end %></tbody></table><% end %>
+</section>

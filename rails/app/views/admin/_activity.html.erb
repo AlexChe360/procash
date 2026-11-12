@@ -1,0 +1,17 @@
+<section class="card admin-activity" aria-labelledby="activity-title">
+  <div class="activity-heading"><div><span class="activity-eyebrow">РОСТ PROCASH</span><h2 id="activity-title">Динамика подключений</h2><p class="muted">Заявки и созданные компании по дням · Алматы, UTC+5</p></div><nav class="activity-period" aria-label="Период графика"><% [7, 30].each do |days| %><%= link_to "#{days} дней", "/demo/dashboard?period=#{days}", aria: { current: @activity.days == days ? "true" : nil } %><% end %></nav></div>
+  <div class="activity-summary"><span><i class="activity-dot requests"></i>Заявки <strong><%= @activity.requests.sum %></strong></span><span><i class="activity-dot companies"></i>Новые компании <strong><%= @activity.companies.sum %></strong></span><small><%= @activity.dates.first.strftime("%d.%m") %> — <%= @activity.dates.last.strftime("%d.%m.%Y") %></small></div>
+  <div class="activity-plot"><svg viewBox="0 0 970 270" role="img" aria-labelledby="activity-svg-title activity-svg-desc">
+    <title id="activity-svg-title">Динамика заявок и новых компаний за <%= @activity.days %> дней</title><desc id="activity-svg-desc">За период получено заявок: <%= @activity.requests.sum %>, создано компаний: <%= @activity.companies.sum %>. Наведите на точку, чтобы увидеть значение за день.</desc>
+    <defs><linearGradient id="activity-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#18b75b" stop-opacity=".16"/><stop offset="100%" stop-color="#18b75b" stop-opacity="0"/></linearGradient></defs>
+    <% @activity.ticks.each do |value| %><line x1="54" x2="934" y1="<%= @activity.y(value) %>" y2="<%= @activity.y(value) %>" class="activity-grid"/><text x="34" y="<%= @activity.y(value) + 4 %>" text-anchor="end"><%= value %></text><% end %>
+    <polygon points="<%= @activity.area(@activity.requests) %>" fill="url(#activity-fill)"/>
+    <polyline points="<%= @activity.points(@activity.requests) %>" class="activity-line requests"/>
+    <polyline points="<%= @activity.points(@activity.companies) %>" class="activity-line companies"/>
+    <% @activity.dates.each_with_index do |date, index| %>
+      <% [[@activity.requests, "requests", "Заявки"], [@activity.companies, "companies", "Компании"]].each do |values, kind, label| %><circle cx="<%= @activity.x(index) %>" cy="<%= @activity.y(values[index]) %>" r="4" class="activity-point <%= kind %>"><title><%= date.strftime("%d.%m.%Y") %> · <%= label %>: <%= values[index] %></title></circle><% end %>
+    <% end %>
+    <% @activity.label_indices.each do |index| %><text x="<%= @activity.x(index) %>" y="252" text-anchor="middle"><%= @activity.dates[index].strftime("%d.%m") %></text><% end %>
+  </svg></div>
+  <% if @activity.requests.sum.zero? && @activity.companies.sum.zero? %><p class="activity-note">За этот период новых заявок и компаний пока нет.</p><% else %><p class="activity-note">Наведите на точку графика, чтобы посмотреть данные за день.</p><% end %>
+</section>

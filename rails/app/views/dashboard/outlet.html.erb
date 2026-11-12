@@ -1,0 +1,13 @@
+<% base = "/dashboard/merchants/#{@merchant.id}/outlets/#{@outlet.id}" %>
+<div class="outlet-page">
+  <div class="outlet-breadcrumb"><a href="/dashboard">Компании</a><span>/</span><a href="/dashboard/merchants/<%= @merchant.id %>"><%= @merchant.legal_name %></a><span>/</span>Торговая точка</div>
+  <header class="outlet-heading"><div><h1><%= @outlet.name %></h1><p class="muted"><%= @outlet.city %>, <%= @outlet.address %></p></div><span class="outlet-status"><span></span><%= @outlet.status_label %></span></header>
+  <nav class="outlet-tabs" aria-label="Разделы торговой точки">
+    <% tabs = [["overview", "Обзор"], ["tables", "Столы и QR"]] %>
+    <% tabs += [["tips", "Чаевые"], ["pos", "POS-интеграция"], ["acquiring", "Эквайринг"]] if @membership.manages? %>
+    <% tabs.each do |key, title| %><a href="<%= base %>?tab=<%= key %>" class="<%= "is-active" if @tab == key %>" <% if @tab == key %>aria-current="page"<% end %>><%= title %></a><% end %>
+  </nav>
+  <% if flash[:notice] %><p class="outlet-success" role="status"><%= flash[:notice] %></p><% end %>
+  <% if flash[:alert] %><p class="error" role="alert"><%= flash[:alert] %></p><% end %>
+  <%= render "dashboard/outlet/#{@tab}", base: base %>
+</div>

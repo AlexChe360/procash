@@ -1,0 +1,12 @@
+services:
+  database:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: procash_rails
+      POSTGRES_PASSWORD: ${PROCASH_DB_PASSWORD:?Set a dedicated development database password}
+    ports:
+      - "127.0.0.1:55439:5432"
+    volumes:
+      - procash_rails_pg:/var/lib/postgresql/data
+volumes:
+  procash_rails_pg:

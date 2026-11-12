@@ -1,0 +1,825 @@
+<% outlet_name = @result[:outlet].name; table_name = @result[:table].name; bill = @display.bill; tips = @display.tips; tip_settings = @display.tip_settings; notice_title = @display.notice_title; notice_message = @display.notice_message %>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f5f4f1">
+
+  <title>Счёт по QR — ProCash</title>
+
+  <link rel="stylesheet" href="/static/css/tailwind.css?v=4">
+</head>
+
+<body class="min-h-svh bg-[#f5f4f1] font-sans text-[#202126] antialiased">
+
+<main class="min-h-svh px-4 pb-9 pt-7 sm:pt-14">
+
+  <div class="mx-auto w-full max-w-[420px]">
+
+    <!-- RESTAURANT HEADER -->
+    <header id="receipt-header" class="mb-5 flex items-center gap-3">
+
+      <div
+              class="flex size-11 shrink-0 items-center justify-center rounded-[13px] bg-[#4b4b4b] text-[#ffcd2a]"
+              aria-hidden="true"
+      >
+        <svg
+                class="size-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.9"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+        >
+          <path d="M3 10h18l-2-7H5l-2 7Z" />
+          <path d="M3 10v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9" />
+          <path d="M9 21v-8h6v8" />
+        </svg>
+      </div>
+
+      <div class="min-w-0">
+
+        <h1 class="break-words text-base font-bold leading-snug text-[#202126]">
+          <%= outlet_name %>
+        </h1>
+
+        <p class="mt-1 break-words text-xs leading-5 text-[#919191]">
+          <%= table_name %>
+
+          <% if (bill = bill) %>
+          · Счёт №<%= bill.number %>
+
+          <% if (waiter_name = bill.waiter_name) %>
+          · Официант <%= waiter_name %>
+          <% end %>
+          <% end %>
+        </p>
+
+      </div>
+
+    </header>
+
+    <p
+            id="bill-sync-status"
+            role="status"
+            aria-live="polite"
+            class="pointer-events-none fixed inset-x-4 bottom-5 z-50 mx-auto max-w-[420px] rounded-xl border border-[#e6e2d8] bg-[#fffaf0] px-4 py-3 text-xs leading-5 text-[#6d5c3d] shadow-lg"
+            hidden
+    ></p>
+
+    <!-- BILL / NOTICE -->
+    <section
+            id="bill-section"
+            class="rounded-[20px] bg-white px-4 pb-3 pt-4 shadow-[0_8px_26px_rgba(25,25,25,0.055)]"
+            aria-label="Счёт ресторана"
+    >
+
+      <% if (bill = bill) %>
+
+      <!-- BILL HEADER -->
+      <div class="mb-2 flex items-start justify-between gap-3">
+
+        <div class="min-w-0">
+
+          <p class="text-xs leading-5 text-[#929292]">
+            Открытый счёт
+          </p>
+
+          <p class="mt-0.5 text-[27px] font-extrabold leading-tight tracking-tight text-[#202126]">
+            <%= bill.total %> ₸
+          </p>
+
+        </div>
+
+        <p class="max-w-[46%] break-words pt-0.5 text-right text-xs leading-5 text-[#929292]">
+          Счёт №<%= bill.number %>
+        </p>
+
+      </div>
+
+      <!-- ORDER ITEMS -->
+      <div class="mt-1">
+
+        <% bill.items.each do |item| %>
+
+        <div class="flex items-start justify-between gap-3 border-b border-[#ecebe8] py-4 last:border-b-0">
+
+          <div class="min-w-0 flex-1">
+
+            <p class="break-words text-sm font-semibold leading-6 text-[#202126]">
+              <%= item.name %>
+            </p>
+
+            <span class="mt-0.5 block text-xs leading-5 text-[#999999]">
+              <%= item.quantity %> шт.
+            </span>
+
+          </div>
+
+          <div class="shrink-0 pt-0.5 text-right text-sm font-semibold leading-5 text-[#202126]">
+
+            <% if (total = item.total) %>
+            <%= total %> ₸
+            <% else %>
+            —
+            <% end %>
+
+          </div>
+
+        </div>
+
+        <% end %>
+
+      </div>
+
+      <!-- BILL AMOUNTS -->
+      <dl class="border-t border-[#ecebe8] pt-1">
+
+        <div class="flex items-baseline justify-between gap-3 py-3 text-sm">
+
+          <dt class="text-[#797979]">
+            Всего по счёту
+          </dt>
+
+          <dd class="shrink-0 font-medium text-[#6f6f6f]">
+            <%= bill.total %> ₸
+          </dd>
+
+        </div>
+
+        <% if (paid = bill.processed_payments) %>
+
+        <div class="flex items-baseline justify-between gap-3 py-3 text-sm">
+
+          <dt class="text-[#797979]">
+            Уже оплачено
+          </dt>
+
+          <dd class="shrink-0 font-medium text-[#6f6f6f]">
+            <%= paid %> ₸
+          </dd>
+
+        </div>
+
+        <% end %>
+
+        <div class="mt-0.5 flex items-center justify-between gap-3 border-t border-[#e1dfdb] pb-2 pt-4">
+
+          <% if (remaining = bill.remaining) %>
+
+          <dt class="text-[15px] font-medium">
+            К оплате
+          </dt>
+
+          <dd id="bill-remaining" class="shrink-0 text-[22px] font-extrabold tracking-tight">
+            <%= remaining %> ₸
+          </dd>
+
+          <% else %>
+
+          <dt class="text-[15px] font-medium">
+            Остаток к оплате
+          </dt>
+
+          <dd class="text-sm font-medium text-[#6f6f6f]">
+            Уточняется
+          </dd>
+
+          <% end %>
+
+        </div>
+
+      </dl>
+
+      <% else %>
+
+      <!-- NO ORDER / UNAVAILABLE -->
+      <div class="px-2 pb-7 pt-3 text-center">
+
+        <div
+                class="mx-auto mb-5 flex size-[60px] items-center justify-center rounded-2xl bg-slate-100 text-slate-500"
+                aria-hidden="true"
+        >
+          <svg
+                  class="size-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+          >
+            <rect x="5" y="3" width="14" height="18" rx="2" />
+            <path d="M9 3v5h6V3M9 12h6M9 16h4" />
+          </svg>
+        </div>
+
+        <h2 class="break-words text-xl font-bold leading-snug">
+          <%= notice_title %>
+        </h2>
+
+        <p class="mx-auto mt-3 max-w-[300px] break-words text-sm leading-6 text-[#797979]">
+          <%= notice_message %>
+        </p>
+
+      </div>
+
+      <% end %>
+
+    </section>
+
+
+    <!-- TIPS -->
+    <% if (tip_view = tips) %>
+
+    <section
+            class="mt-4 rounded-[20px] bg-white px-4 py-5 shadow-[0_8px_26px_rgba(25,25,25,0.055)]"
+            aria-label="Чаевые официанту"
+            id="tips-section"
+    >
+
+      <div class="flex items-start justify-between gap-3">
+
+        <div class="min-w-0">
+
+          <h2 class="text-base font-bold text-[#202126]">
+            Чаевые
+
+            <% if (bill = bill) %>
+            <% if (waiter_name = bill.waiter_name) %>
+            официанту <%= waiter_name %>
+            <% end %>
+            <% end %>
+          </h2>
+
+          <p class="mt-2 text-xs leading-5 text-[#919191]">
+            Вы можете поблагодарить официанта
+            за обслуживание.
+          </p>
+
+        </div>
+
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#fff7df] text-[#d28a14]">
+          <svg
+                  class="size-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+          >
+            <path d="M12 21s-8-4.8-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.2-8 11-8 11Z"/>
+          </svg>
+        </div>
+
+      </div>
+
+      <!-- TIP PERCENTAGES -->
+      <div class="mt-5 border-t border-[#ecebe8] pt-5">
+
+        <p class="text-xs font-medium text-[#797979]">
+          Выберите размер чаевых
+        </p>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+
+          <% tip_view.options.each do |option| %>
+
+
+          <form method="get" data-tip-form>
+
+            <input
+                    type="hidden"
+                    name="tip"
+                    value="<%= option.percentage %>"
+            >
+
+            <button
+                    type="submit"
+                    data-tip-option
+                    data-tip-amount="<%= option.tip_amount %>"
+                    data-total-amount="<%= option.total_amount %>"
+                    aria-pressed="<% if option.selected %>true<% else %>false<% end %>"
+                    class="min-h-11 rounded-xl border px-4 py-2.5 text-sm font-semibold transition
+        <% if option.selected %>
+            border-[#161616] bg-[#161616] text-white
+        <% else %>
+            border-[#e5e5e5] bg-[#fafafa] text-[#202126] hover:border-[#999999]
+        <% end %>"
+            >
+              <%= option.percentage %>%
+            </button>
+
+          </form>
+
+
+          <% end %>
+
+          <% if tip_settings.allow_custom_amount %>
+          <button
+                  id="custom-tip-toggle"
+                  type="button"
+                  aria-controls="custom-tip-panel"
+                  aria-expanded="<% if tip_view.is_custom %>true<% else %>false<% end %>"
+                  aria-pressed="<% if tip_view.is_custom %>true<% else %>false<% end %>"
+                  class="min-h-11 rounded-xl border px-4 py-2.5 text-sm font-semibold transition
+                  <% if tip_view.is_custom %>
+                    border-[#161616] bg-[#161616] text-white
+                  <% else %>
+                    border-[#e5e5e5] bg-[#fafafa] text-[#202126] hover:border-[#999999]
+                  <% end %>"
+          >
+            <% if tip_view.is_custom %>Изменить сумму<% else %>Своя сумма<% end %>
+          </button>
+          <% end %>
+
+        </div>
+
+        <% if tip_settings.allow_custom_amount %>
+        <div
+                id="custom-tip-panel"
+                class="mt-4 rounded-xl border border-[#ecebe8] bg-[#fafafa] p-4"
+                <% if !tip_view.is_custom %>hidden<% end %>
+        >
+          <form id="custom-tip-form" method="get" data-custom-tip-form>
+            <label for="custom-tip-input" class="block text-sm font-semibold text-[#202126]">
+              Сумма чаевых, ₸
+            </label>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <input
+                      id="custom-tip-input"
+                      type="text"
+                      name="custom_tip"
+                      value="<%= tip_view.custom_input %>"
+                      inputmode="decimal"
+                      autocomplete="off"
+                      maxlength="32"
+                      pattern="[0-9]+([.,][0-9]{1,2})?"
+                      placeholder="Например, 350"
+                      aria-describedby="custom-tip-hint custom-tip-error"
+                      required
+                      class="min-w-0 flex-1 rounded-xl border border-[#dedede] bg-white px-3 py-3 text-base text-[#202126] outline-none focus:border-[#161616]"
+              >
+              <button
+                      id="custom-tip-submit"
+                      type="submit"
+                      class="min-h-11 rounded-xl bg-[#161616] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                Рассчитать
+              </button>
+            </div>
+
+            <p id="custom-tip-hint" class="mt-2 text-xs leading-5 text-[#919191]">
+              Допустима сумма от 0 ₸ до текущего остатка счёта. До двух знаков после запятой.
+            </p>
+            <p id="custom-tip-error" role="alert" class="mt-2 text-xs leading-5 text-red-600" hidden></p>
+          </form>
+        </div>
+        <% end %>
+
+      </div>
+
+      <!-- CALCULATION -->
+      <dl class="mt-5 space-y-3 border-t border-[#ecebe8] pt-5">
+
+        <div class="flex items-center justify-between gap-3">
+
+          <dt id="tip-row-label" class="text-sm text-[#797979]">
+            <% if tip_view.is_custom %>
+            Чаевые (своя сумма)
+            <% else %>
+            Чаевые (<%= tip_view.selected_percentage %>%)
+            <% end %>
+          </dt>
+
+          <dd id="tip-preview-amount" class="text-sm font-semibold text-[#202126]">
+            <%= tip_view.tip_amount %> ₸
+          </dd>
+
+        </div>
+
+        <div class="flex items-center justify-between gap-3 border-t border-[#ecebe8] pt-4">
+
+          <dt class="text-base font-semibold text-[#202126]">
+            Итого с чаевыми
+          </dt>
+
+          <dd id="tip-preview-total" class="text-xl font-extrabold text-[#202126]">
+            <%= tip_view.total_amount %> ₸
+          </dd>
+
+        </div>
+
+      </dl>
+
+      <p class="mt-5 text-[11px] leading-5 text-[#999999]">
+        Сумма рассчитана для предварительного просмотра.
+        Онлайн-оплата пока недоступна.
+      </p>
+
+    </section>
+
+    <% end %>
+
+    <div id="payment-area">
+      <!-- PAYMENT -->
+      <% if (bill = bill) %>
+
+      <!-- Payment deliberately disabled until acquiring is connected -->
+      <button
+              id="payment-button"
+              type="button"
+              disabled
+              aria-describedby="payment-note"
+              class="mt-4 flex min-h-[54px] w-full cursor-not-allowed items-center justify-center rounded-[14px] bg-[#161616] px-5 py-3.5 text-center text-[15px] font-bold text-white"
+      >
+
+        <% if (tip_view = tips) %>
+
+        Оплатить <%= tip_view.total_amount %> ₸
+
+        <% else %>
+
+        <% if (remaining = bill.remaining) %>
+        Оплатить <%= remaining %> ₸
+        <% else %>
+        Онлайн-оплата недоступна
+        <% end %>
+
+        <% end %>
+
+      </button>
+
+      <p
+              id="payment-note"
+              class="mx-auto mt-3 max-w-80 text-center text-[11px] leading-[1.55] text-[#979797]"
+      >
+        Онлайн-оплата пока не подключена.
+        Для оплаты обратитесь к сотруднику заведения.
+      </p>
+
+      <% else %>
+
+      <p class="mx-auto mt-4 max-w-80 text-center text-xs leading-5 text-[#979797]">
+        Если вам необходимо оплатить счёт,
+        обратитесь к сотруднику заведения.
+      </p>
+
+      <% end %>
+
+    </div>
+
+    <!-- FOOTER -->
+    <p class="mt-6 text-center text-[11px] text-[#a5a5a5]">
+      Сервис ProCash
+    </p>
+
+  </div>
+
+</main>
+
+<script>
+  (() => {
+    // The existing route /t/{token} is the single source of truth.
+    // No payment is initiated here; payment button remains disabled.
+    const CHECK_INTERVAL_MS = 50000;
+    const selectedClasses = ["border-[#161616]", "bg-[#161616]", "text-white"];
+    const unselectedClasses = [
+      "border-[#e5e5e5]", "bg-[#fafafa]", "text-[#202126]", "hover:border-[#999999]"
+    ];
+
+    let customRequestPending = false;
+    let pollInProgress = false;
+    let absentOrderCount = 0;
+    let cleanupTips = () => {};
+    let statusTimeout = null;
+
+    function announce(message) {
+      const status = document.getElementById("bill-sync-status");
+      if (!status) return;
+      status.textContent = message;
+      status.hidden = !message;
+      if (statusTimeout) clearTimeout(statusTimeout);
+      if (message) {
+        statusTimeout = setTimeout(() => {
+          status.hidden = true;
+        }, 8000);
+      }
+    }
+
+    function markButton(button, active) {
+      button.setAttribute("aria-pressed", String(active));
+      for (const cls of selectedClasses) button.classList.toggle(cls, active);
+      for (const cls of unselectedClasses) button.classList.toggle(cls, !active);
+    }
+
+    function saveSelectionToUrl(name, value) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("tip");
+      url.searchParams.delete("custom_tip");
+      url.searchParams.set(name, value);
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    function initTipControls() {
+      const section = document.getElementById("tips-section");
+      if (!section) return () => {};
+
+      const buttons = [...section.querySelectorAll("[data-tip-option]")];
+      const tipLabel = document.getElementById("tip-row-label");
+      const tipAmount = document.getElementById("tip-preview-amount");
+      const totalAmount = document.getElementById("tip-preview-total");
+      const paymentButton = document.getElementById("payment-button");
+      const customToggle = document.getElementById("custom-tip-toggle");
+      const customPanel = document.getElementById("custom-tip-panel");
+      const customForm = document.getElementById("custom-tip-form");
+      const customInput = document.getElementById("custom-tip-input");
+      const customSubmit = document.getElementById("custom-tip-submit");
+      const customError = document.getElementById("custom-tip-error");
+
+      if (!tipLabel || !tipAmount || !totalAmount || !paymentButton) return () => {};
+
+      let requestId = 0;
+      let pendingController = null;
+
+      function markSelection(activePercentageButton) {
+        for (const button of buttons) markButton(button, button === activePercentageButton);
+        if (customToggle) {
+          const isCustom = activePercentageButton === null;
+          markButton(customToggle, isCustom);
+          customToggle.textContent = isCustom ? "Изменить сумму" : "Своя сумма";
+        }
+      }
+
+      function showCustomPanel(visible) {
+        if (!customPanel || !customToggle) return;
+        customPanel.hidden = !visible;
+        customToggle.setAttribute("aria-expanded", String(visible));
+      }
+
+      function showError(message) {
+        if (!customError) return;
+        customError.textContent = message;
+        customError.hidden = !message;
+      }
+
+      function setBusy(busy) {
+        if (!customSubmit) return;
+        customSubmit.disabled = busy;
+        customSubmit.textContent = busy ? "Проверяем…" : "Рассчитать";
+      }
+
+      function cancelPending() {
+        requestId += 1;
+        if (pendingController) pendingController.abort();
+        pendingController = null;
+        customRequestPending = false;
+        setBusy(false);
+      }
+
+      function updatePreview(label, tip, total) {
+        tipLabel.textContent = label;
+        tipAmount.textContent = tip;
+        totalAmount.textContent = total;
+        paymentButton.textContent = `Оплатить ${total}`;
+        paymentButton.disabled = true;
+      }
+
+      function onCustomToggleClick() {
+        showCustomPanel(true);
+        showError("");
+        if (customInput) {
+          customInput.focus();
+          customInput.select();
+          customInput.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }
+
+      async function onSubmit(event) {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || !section.contains(form)) return;
+
+        if (form.hasAttribute("data-tip-form")) {
+          const button = form.querySelector("[data-tip-option]");
+          const percentage = form.elements.namedItem("tip")?.value;
+          if (!button || percentage == null) return;
+
+          event.preventDefault();
+          cancelPending();
+          showError("");
+          showCustomPanel(false);
+          markSelection(button);
+          updatePreview(
+                  `Чаевые (${percentage}%)`,
+                  `${button.dataset.tipAmount} ₸`,
+                  `${button.dataset.totalAmount} ₸`
+          );
+          saveSelectionToUrl("tip", percentage);
+          return;
+        }
+
+        if (form !== customForm || !customInput) return;
+        event.preventDefault();
+
+        const value = customInput.value.trim();
+        if (!value) {
+          showError("Введите сумму чаевых.");
+          return;
+        }
+
+        // Monetary amounts come from Rust's Decimal calculation, not from JS.
+        cancelPending();
+        const currentRequest = ++requestId;
+        const controller = new AbortController();
+        pendingController = controller;
+        customRequestPending = true;
+        showError("");
+        setBusy(true);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete("tip");
+        url.searchParams.set("custom_tip", value);
+
+        try {
+          const response = await fetch(url.toString(), {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store",
+            headers: { "Accept": "text/html" },
+            signal: controller.signal
+          });
+
+          if (currentRequest !== requestId) return;
+          if (!response.ok) {
+            if (response.status === 400 || response.status === 422) {
+              throw new Error("Некорректная сумма. Проверьте формат и лимит чаевых.");
+            }
+            throw new Error("Не удалось проверить сумму. Попробуйте ещё раз.");
+          }
+
+          const page = new DOMParser().parseFromString(await response.text(), "text/html");
+          if (currentRequest !== requestId) return;
+
+          const nextLabel = page.getElementById("tip-row-label")?.textContent.trim();
+          const nextTip = page.getElementById("tip-preview-amount")?.textContent.trim();
+          const nextTotal = page.getElementById("tip-preview-total")?.textContent.trim();
+          const nextPanel = page.getElementById("custom-tip-panel");
+
+          // Reject a calculation based on a bill that no longer matches the UI.
+          const currentBill = document.getElementById("bill-section")?.innerHTML;
+          const freshBill = page.getElementById("bill-section")?.innerHTML;
+          if (!nextLabel || !nextTip || !nextTotal || !nextPanel ||
+                  !currentBill || !freshBill || currentBill !== freshBill) {
+            throw new Error("Счёт изменился. Дождитесь обновления и повторите попытку.");
+          }
+
+          updatePreview(nextLabel, nextTip, nextTotal);
+          markSelection(null);
+          showCustomPanel(true);
+          window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+        } catch (error) {
+          if (currentRequest !== requestId || error.name === "AbortError") return;
+          showError(error.message || "Не удалось проверить сумму.");
+        } finally {
+          if (currentRequest === requestId) {
+            pendingController = null;
+            customRequestPending = false;
+            setBusy(false);
+          }
+        }
+      }
+
+      if (customToggle) customToggle.addEventListener("click", onCustomToggleClick);
+      section.addEventListener("submit", onSubmit);
+
+      // Called before DOM replacement to avoid stale handlers and requests.
+      return () => {
+        cancelPending();
+        if (customToggle) customToggle.removeEventListener("click", onCustomToggleClick);
+        section.removeEventListener("submit", onSubmit);
+      };
+    }
+
+    function tipConfiguration(section) {
+      if (!section) return "disabled";
+      const optionData = [...section.querySelectorAll("[data-tip-option]")]
+              .map(button => [
+                button.closest("form")?.querySelector('input[name="tip"]')?.value,
+                button.dataset.tipAmount,
+                button.dataset.totalAmount
+              ]);
+      return JSON.stringify({
+        options: optionData,
+        custom: Boolean(section.querySelector("#custom-tip-toggle"))
+      });
+    }
+
+    async function fetchFreshPage() {
+      const url = new URL(window.location.href);
+      const options = { method: "GET", credentials: "same-origin", cache: "no-store",
+        headers: { "Accept": "text/html" } };
+      let response = await fetch(url.toString(), options);
+      let resetSelection = false;
+
+      // A previously selected tip may no longer be valid after order/settings change.
+      // Retry without tips; never use a bad/old amount as the basis for a payment.
+      if (response.status === 400 &&
+              (url.searchParams.has("tip") || url.searchParams.has("custom_tip"))) {
+        url.searchParams.delete("tip");
+        url.searchParams.delete("custom_tip");
+        response = await fetch(url.toString(), options);
+        resetSelection = true;
+      }
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return { page: new DOMParser().parseFromString(await response.text(), "text/html"),
+        resetSelection, url };
+    }
+
+    async function checkForChanges() {
+      if (pollInProgress || customRequestPending || document.visibilityState !== "visible") return;
+      if (document.activeElement?.id === "custom-tip-input") return;
+      pollInProgress = true;
+      const requestedAddress = window.location.href;
+
+      try {
+        const { page, resetSelection, url } = await fetchFreshPage();
+        // Don't overwrite a choice or text the guest changed while polling.
+        if (window.location.href !== requestedAddress || customRequestPending ||
+                document.activeElement?.id === "custom-tip-input") return;
+        const currentBill = document.getElementById("bill-section");
+        const newBill = page.getElementById("bill-section");
+        const currentHeader = document.getElementById("receipt-header");
+        const newHeader = page.getElementById("receipt-header");
+        const currentPayment = document.getElementById("payment-area");
+        const newPayment = page.getElementById("payment-area");
+        if (!currentBill || !newBill || !currentHeader || !newHeader ||
+                !currentPayment || !newPayment) return;
+
+        const oldHasOrder = Boolean(document.getElementById("payment-button"));
+        const newHasOrder = Boolean(page.getElementById("payment-button"));
+
+        // An iiko connectivity problem can resemble an absent order.
+        // Require two consecutive consistent readings before replacing an open bill.
+        if (oldHasOrder && !newHasOrder) {
+          absentOrderCount += 1;
+          if (absentOrderCount < 2) return;
+        } else {
+          absentOrderCount = 0;
+        }
+
+        const oldTips = document.getElementById("tips-section");
+        const newTips = page.getElementById("tips-section");
+        const changed = currentBill.innerHTML !== newBill.innerHTML ||
+                currentHeader.innerHTML !== newHeader.innerHTML ||
+                tipConfiguration(oldTips) !== tipConfiguration(newTips) ||
+                oldHasOrder !== newHasOrder || resetSelection;
+
+        if (!changed) return;
+
+        cleanupTips();
+        currentHeader.replaceWith(newHeader);
+        currentBill.replaceWith(newBill);
+
+        if (oldTips && newTips) oldTips.replaceWith(newTips);
+        else if (oldTips && !newTips) oldTips.remove();
+        else if (!oldTips && newTips) newBill.after(newTips);
+
+        currentPayment.replaceWith(newPayment);
+        cleanupTips = initTipControls();
+
+        if (resetSelection) {
+          // Remove a no-longer-valid tip from the address bar.
+          window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+          announce("Счёт или настройки изменились. Выбранные чаевые сброшены; проверьте новую сумму.");
+        } else if (!newHasOrder) {
+          announce("Статус счёта изменился. Проверьте сообщение ресторана на странице.");
+        } else {
+          announce("Счёт обновлён. Чаевые и итог пересчитаны по новым данным.");
+        }
+      } catch (error) {
+        // Network or iiko failure is NOT proof the order was closed.
+        absentOrderCount = 0;
+        announce("Не удалось проверить актуальность счёта. Повторим проверку автоматически.");
+      } finally {
+        pollInProgress = false;
+      }
+    }
+
+    cleanupTips = initTipControls();
+    window.setInterval(checkForChanges, CHECK_INTERVAL_MS);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") void checkForChanges();
+    });
+  })();
+</script>
+
+</body>
+</html>

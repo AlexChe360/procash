@@ -1,0 +1,46 @@
+name: procash_rails
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: procash_rails_production
+      POSTGRES_USER: procash_rails
+      POSTGRES_PASSWORD: ${PROCASH_DB_PASSWORD:?Required database password}
+    volumes:
+      - data:/var/lib/postgresql/data
+    mem_limit: 256m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U procash_rails -d procash_rails_production']
+      interval: 5s
+      timeout: 5s
+      retries: 18
+  app:
+    image: ${PROCASH_IMAGE:?Use a tested immutable image digest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: '3101'
+    ports:
+      - '127.0.0.1:${PROCASH_BIND_PORT:-3101}:3101'
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, --max-time, '5', -H, 'Host: procash.kz', 'http://127.0.0.1:3101/health']
+      interval: 10s
+      timeout: 6s
+      retries: 12
+      start_period: 20s
+  worker:
+    image: ${PROCASH_IMAGE:?Use a tested immutable image digest}
+    restart: unless-stopped
+    env_file: .env
+    command: [./bin/rails, procash:mail_worker]
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 256m
+volumes:
+  data:

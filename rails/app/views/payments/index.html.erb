@@ -1,0 +1,7 @@
+<h1>Платежи</h1><p class="muted">Транзакции торговой точки</p>
+<section class="card"><%= form_with url: "/dashboard/payments", method: :get do %>
+<div class="payments-filter"><div class="outlet-page"><label for="payments-outlet">Торговая точка</label><%= render "shared/select", name: :outlet_id, id: "payments-outlet", label: "Торговая точка", placeholder: "Выберите точку", options: options_for_select(@outlets.map { |o| ["#{o.merchant.legal_name} · #{o.name}", o.id] }, @outlet&.id) %></div><%= button_tag "Показать", disabled: @outlets.empty? %></div><% end %></section>
+<section class="card payments-empty"><%= render "shared/icon", name: "payments" %>
+<% if @outlet %><h2>Приём платежей ещё не подключён</h2><% if @acquiring_connection_count.positive? %><p>Одобрено провайдеров ProCash: <%= @acquiring_connection_count %>. Оплата ещё не включена.</p><% else %><p>Для точки «<%= @outlet.name %>» пока не подключён платёжный провайдер. Подайте заявку в ProCash.</p><% end %><p class="muted">После подключения эквайринга здесь появятся платежи, возвраты и их статусы. Заказы и суммы оплат из iiko не подтверждают банковское зачисление.</p>
+<% if @can_manage_acquiring %><a class="button" href="/dashboard/merchants/<%= @outlet.merchant_id %>/outlets/<%= @outlet.id %>?tab=acquiring">Настроить эквайринг →</a><% end %>
+<% else %><h2>Нет доступных торговых точек</h2><p class="muted">Сначала добавьте торговую точку в разделе «Мои компании».</p><% end %></section>

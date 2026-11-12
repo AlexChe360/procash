@@ -1,0 +1,6 @@
+<% items = if current_user.admin?
+  [["Обзор", "/demo/dashboard", "overview", controller_name == "admin" && action_name == "index"], ["Заявки", "/demo/requests", "requests", controller_name == "admin" && %w[requests show].include?(action_name)], ["Компании", "/demo/merchants", "companies", controller_name == "admin" && %w[merchants new_merchant preview_merchant].include?(action_name)], ["Эквайринг", "/admin/acquiring", "payments", controller_name.in?(%w[admin_acquiring acquiring_connections])], ["Настройки", "/admin/settings", "settings", controller_name == "account_settings"]]
+else
+  [["Мои компании", "/dashboard", "companies", controller_name.in?(%w[dashboard pos_configurations acquiring_requests])], ["Платежи", "/dashboard/payments", "payments", controller_name == "payments"], ["Настройки", "/dashboard/settings", "settings", controller_name == "account_settings"]]
+end %>
+<% items.each do |title, path, icon, active| %><%= link_to path, class: "topbar-nav-link", aria: { current: active ? "page" : nil } do %><%= render "shared/icon", name: icon %><span><%= title %></span><% end %><% end %>

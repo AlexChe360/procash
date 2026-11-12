@@ -1,0 +1,17 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
+  host: <%= ENV.fetch("PROCASH_DB_HOST", "127.0.0.1") %>
+  port: <%= ENV.fetch("PROCASH_DB_PORT", 55439) %>
+  username: <%= ENV.fetch("PROCASH_DB_USER", "procash_rails") %>
+  password: <%= ENV["PROCASH_DB_PASSWORD"] %>
+development:
+  <<: *default
+  database: procash_rails_development
+test:
+  <<: *default
+  database: procash_rails_test
+production:
+  <<: *default
+  database: <%= ENV.fetch("PROCASH_DB_NAME", "procash_rails_production") %>
