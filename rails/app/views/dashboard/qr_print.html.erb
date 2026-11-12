@@ -1,0 +1,8 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR для печати — <%= @table.name %></title><%= stylesheet_link_tag "qr_print", "select" %><%= javascript_importmap_tags %></head>
+<body data-controller="qr-print">
+<header class="print-controls"><div><h1>Печать QR-карточки</h1><p>Векторный макет · <%= @print_width %> × <%= @print_height %> мм (ширина × высота)</p></div>
+<%= form_with url: request.path, method: :get do %><%= hidden_field_tag :design, @design %><%= hidden_field_tag :color, @color %><div class="print-size-field"><label for="print-size">Размер карточки</label><%= render "shared/select", name: :size, id: "print-size", label: "Размер карточки", placeholder: "Выберите размер", options: options_for_select(@print_sizes.map { |key, (width, height)| ["#{width} × #{height} мм", key] }, @print_size) %></div><%= button_tag "Применить", class: "secondary" %><% end %>
+<button type="button" data-action="qr-print#print">Печать / сохранить PDF</button>
+<p class="print-help">В окне печати выберите бумагу <strong>A4</strong>, масштаб <strong>100%</strong>, отключите подгонку под лист и колонтитулы. Размер карточки уже задан в макете.</p></header>
+<main class="print-sheet"><div class="print-card" style="width:<%= @print_width %>mm;height:<%= @print_height %>mm"><%= @print_svg.html_safe %></div></main>
+</body></html>

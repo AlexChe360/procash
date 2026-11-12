@@ -1,0 +1,12 @@
+<div class="pc-select" data-controller="select" data-action="keydown->select#keydown click@window->select#outside turbo:before-cache@document->select#reset">
+  <%= select_tag name, options, id: id, include_blank: placeholder, required: local_assigns.fetch(:required, true), data: { select_target: "native", action: "change->select#sync invalid->select#invalid" } %>
+  <div data-select-target="enhanced" hidden>
+    <button type="button" class="pc-select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-label="<%= label %>" data-select-target="trigger" data-action="click->select#toggle"><span data-select-target="text"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <div class="pc-select-panel" data-select-target="panel" hidden>
+      <div class="pc-select-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input type="search" placeholder="Поиск…" aria-label="Поиск в списке" autocomplete="off" data-select-target="search" data-action="input->select#filter"></div>
+      <div class="pc-select-list" role="listbox" aria-label="<%= label %>" data-select-target="list"></div>
+      <p class="pc-select-empty" data-select-target="empty" hidden>Ничего не найдено. Попробуйте другой запрос.</p>
+      <div class="pc-select-hint">↑ ↓ навигация <span>↵ выбрать</span></div>
+    </div>
+  </div>
+</div>

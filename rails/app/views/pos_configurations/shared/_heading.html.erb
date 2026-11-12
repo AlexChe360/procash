@@ -1,0 +1,4 @@
+<% base = "/dashboard/merchants/#{@merchant.id}/outlets/#{@outlet.id}" %>
+<div class="outlet-breadcrumb"><a href="<%= base %>?tab=pos">Настройка iiko</a><span>/</span><%= @outlet.name %></div>
+<header class="outlet-heading"><div><span class="iiko-eyebrow">ШАГ <%= step %> ИЗ 4</span><h1><%= title %></h1></div><a class="button outlet-secondary" href="<%= base %>?tab=pos">Все шаги</a></header>
+<% if flash[:notice] %><p class="outlet-success" role="status"><%= flash[:notice] %></p><% end %>

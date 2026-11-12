@@ -1,0 +1,121 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Onest:wght@400;500;600;700&display=swap");
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../../views";
+
+@theme {
+    --color-brand: #e66353;
+    --color-brand-hover: #d95647;
+
+    --color-page: #f8f8f7;
+    --color-surface: #ffffff;
+    --color-ink: #202020;
+    --color-muted: #777777;
+    --color-divider: #e9e7e3;
+
+    --font-sans: "Onest", sans-serif;
+    --font-display: "Manrope", sans-serif;
+}
+
+body {
+    font-family: "Onest", sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: "Manrope", sans-serif;
+    letter-spacing: -0.025em;
+}
+
+/* ProCash Landing Animations */
+
+@keyframes pc-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pc-fade-right {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pc-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
+}
+
+@layer components {
+    .pc-appear {
+        animation: pc-fade-up 0.7s
+        cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .pc-delay-1 {
+        animation-delay: 0.1s;
+    }
+
+    .pc-delay-2 {
+        animation-delay: 0.2s;
+    }
+
+    .pc-delay-3 {
+        animation-delay: 0.3s;
+    }
+
+    .pc-delay-4 {
+        animation-delay: 0.4s;
+    }
+
+    .pc-phone-enter {
+        animation: pc-fade-right 0.9s ease-out both;
+    }
+
+    .pc-phone-float {
+        animation: pc-float 7s ease-in-out infinite;
+    }
+
+    .pc-button {
+        transition: transform 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .pc-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pc-appear,
+    .pc-phone-enter,
+    .pc-phone-float {
+        animation: none !important;
+    }
+
+    .pc-button {
+        transition: none;
+    }
+}

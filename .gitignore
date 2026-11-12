@@ -12,3 +12,18 @@
 /storage/
 /.phpunit.result.cache
 __pycache__/
+
+# Rails runtime and credentials
+/rails/.bundle/
+/rails/vendor/bundle/
+/rails/.env*
+!/rails/.env.example
+/rails/config/master.key
+/rails/config/credentials/*.key
+/rails/log/*
+!/rails/log/.keep
+/rails/tmp/*
+!/rails/tmp/.keep
+/rails/storage/*
+/rails/public/assets/.manifest.json
+/rails/public/assets/*-????????.*

@@ -1,0 +1,9 @@
+<%= form_with url: url, class: "outlet-form acquiring-form" do %>
+<label>Название подключения<%= text_field_tag :name, connection&.name, id: "acquiring-name-#{suffix}", required: true, minlength: 2, maxlength: 100, placeholder: "Например, основной эквайринг" %></label>
+<div class="field-grid"><div><label for="provider-<%= suffix %>">Провайдер</label><%= render "shared/select", name: :provider, id: "provider-#{suffix}", label: "Провайдер", placeholder: "Выберите провайдера", options: options_for_select(PaymentProviders::Registry::PROVIDERS.map { |key, item| [item.fetch(:name), key] }, connection&.provider || PaymentProviders::Registry::DEFAULT) %></div><div><label for="environment-<%= suffix %>">Режим</label><%= render "shared/select", name: :environment, id: "environment-#{suffix}", label: "Режим подключения", placeholder: "Выберите режим", options: options_for_select([["Тестовый", "test"], ["Боевой", "live"]], connection&.environment || "test") %></div></div>
+<label>Merchant ID провайдера<%= text_field_tag :provider_merchant_id, connection&.provider_merchant_id, id: "acquiring-merchant-#{suffix}", required: true, pattern: "[0-9]{1,64}", inputmode: "numeric", maxlength: 64, placeholder: "ID из кабинета провайдера" %></label>
+<label>Секретный ключ для приёма платежей<%= password_field_tag :payment_secret, nil, id: "acquiring-secret-#{suffix}", autocomplete: "new-password", maxlength: 4096, placeholder: connection&.secret_saved? ? "Оставьте пустым, чтобы сохранить текущий ключ" : "Можно добавить позже" %></label>
+<p class="acquiring-form-note">Ключ хранится в зашифрованном виде и не показывается после сохранения. Merchant ID без ключа можно сохранить как черновик.</p>
+
+<div><%= button_tag connection ? "Сохранить изменения" : "Добавить подключение" %></div>
+<% end %>

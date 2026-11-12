@@ -1,0 +1,36 @@
+name: Inspect VPS for Rails
+on:
+  push:
+    branches: [codex/rails-vps-deployment]
+    paths: ['.github/workflows/rails-vps-audit.yml', 'deploy/vps_audit.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+      DEPLOY_PATH: ${{ vars.VPS_DEPLOY_PATH || '/opt/procash' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure existing SSH access
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          : "${SSH_PRIVATE_KEY:?Missing VPS_SSH_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing VPS_KNOWN_HOSTS}"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Inspect server without modifying production
+        run: python3 deploy/vps_audit.py
+      - name: Remove runner credentials
+        if: always()
+        run: rm -f -- ~/.ssh/id_ed25519 ~/.ssh/known_hosts

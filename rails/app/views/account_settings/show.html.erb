@@ -1,0 +1,18 @@
+<% base = current_user.admin? ? "/admin/settings" : "/dashboard/settings" %>
+<h1>Настройки</h1><p class="muted">Профиль и безопасность вашего аккаунта</p>
+<% if flash[:notice] %><p class="outlet-success" role="status"><%= flash[:notice] %></p><% end %>
+<div class="account-settings-grid">
+<section class="card"><h2>Личные данные</h2>
+<%= form_with url: "#{base}/profile" do %>
+<label>Email<input value="<%= current_user.email %>" readonly aria-readonly="true"></label>
+<label>Имя<%= text_field_tag :display_name, params[:display_name] || current_user.display_name, required: true, minlength: 2, maxlength: 100, autocomplete: "name", placeholder: "Как к вам обращаться" %></label>
+<p class="muted">Роль: <%= current_user.admin? ? "Администратор ProCash" : "Пользователь кабинета мерчанта" %></p>
+<div><%= button_tag "Сохранить имя" %></div><% end %></section>
+<section class="card"><h2>Смена пароля</h2>
+<%= form_with url: "#{base}/password" do %>
+<label>Текущий пароль<%= password_field_tag :current_password, nil, required: true, autocomplete: "current-password" %></label>
+<label>Новый пароль<%= password_field_tag :new_password, nil, required: true, minlength: 12, maxlength: 128, autocomplete: "new-password" %></label>
+<label>Повторите новый пароль<%= password_field_tag :password_confirmation, nil, required: true, autocomplete: "new-password" %></label>
+<p class="muted">Не менее 12 символов. После смены пароля другие сеансы этого аккаунта будут завершены.</p>
+<div><%= button_tag "Изменить пароль" %></div><% end %></section>
+</div>

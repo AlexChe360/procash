@@ -1,0 +1,12 @@
+name: Rails cutover regression tests
+on:
+  pull_request:
+    paths: ['deploy/rails_*', 'deploy/test_rails_deploy.py', '.github/workflows/rails-deployment-checks.yml']
+permissions:
+  contents: read
+jobs:
+  rollback-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: python3 deploy/test_rails_deploy.py

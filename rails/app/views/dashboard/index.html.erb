@@ -1,0 +1,1 @@
+<h1>Мои компании</h1><p class="muted">Добро пожаловать, <%= current_user.display_name %></p><div class="grid"><% @memberships.each do |membership| %><a class="card" href="/dashboard/merchants/<%= membership.merchant_id %>"><h2><%= membership.merchant.legal_name %></h2><span class="badge"><%= membership.role %></span></a><% end %></div>

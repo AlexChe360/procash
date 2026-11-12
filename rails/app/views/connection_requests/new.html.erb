@@ -1,0 +1,552 @@
+<% form = @connection_request; error = form.errors.any? ? form.errors.full_messages.join(", ") : nil; csrf_token = form_authenticity_token %>
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Подключить ресторан — ProCash</title>
+
+  <link rel="stylesheet" href="/static/css/tailwind.css?v=4">
+
+  <%= stylesheet_link_tag "select", "data-turbo-track": "reload" %>
+  <%= csrf_meta_tags %>
+  <%= javascript_importmap_tags %>
+</head>
+
+<body class="connect-page min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
+
+<div class="flex min-h-screen flex-col">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-200 bg-white">
+
+    <div class="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
+
+      <!-- LOGO -->
+      <a href="/"
+         aria-label="ProCash — главная"
+         class="inline-flex shrink-0 items-center">
+
+        <img src="/assets/procash-logo.png"
+             alt="ProCash"
+             class="h-10 w-auto max-w-36 object-contain">
+
+      </a>
+
+      <!-- BACK LINK -->
+      <a href="/"
+         class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+
+        <svg class="h-4 w-4"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round"
+             aria-hidden="true">
+
+          <path d="M19 12H5"/>
+          <path d="m11 18-6-6 6-6"/>
+
+        </svg>
+
+        На главную
+
+      </a>
+
+    </div>
+
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 px-5 py-10 sm:py-14 lg:px-8 lg:py-16">
+
+    <div class="mx-auto w-full max-w-4xl">
+
+      <!-- PAGE HEADING -->
+      <div class="mb-10 max-w-2xl">
+
+                <span class="text-xs font-bold uppercase tracking-[0.2em] text-amber-600">
+                    PROCASH BUSINESS
+                </span>
+
+        <h1 class="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">
+          Подключить ресторан
+        </h1>
+
+        <p class="mt-5 text-base leading-7 text-slate-500">
+          Расскажите о своём заведении.
+          Мы рассмотрим заявку, свяжемся с вами
+          и обсудим возможности подключения ProCash.
+        </p>
+
+      </div>
+
+      <!-- FORM CARD -->
+      <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+        <!-- CARD HEADER -->
+        <div class="border-b border-slate-100 px-6 py-6 sm:px-8">
+
+          <div class="flex items-center gap-4">
+
+            <!-- ICON -->
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-amber-400">
+
+              <svg class="h-6 w-6"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="1.8"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   aria-hidden="true">
+
+                <path d="M3 10h18l-2-7H5l-2 7Z"/>
+                <path d="M3 10v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9"/>
+                <path d="M9 21v-8h6v8"/>
+
+              </svg>
+
+            </div>
+
+            <div>
+
+              <h2 class="text-lg font-bold text-slate-900">
+                Заявка на подключение
+              </h2>
+
+              <p class="mt-1 text-sm text-slate-500">
+                Заполните информацию о заведении
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- FORM CONTENT -->
+        <div class="px-6 py-8 sm:px-8">
+
+          <!-- ERROR MESSAGE -->
+          <% if (message = error) %>
+
+          <div role="alert"
+               class="mb-8 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-5">
+
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-600"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4M12 16h.01"/>
+
+            </svg>
+
+            <div>
+
+              <h3 class="text-sm font-bold text-red-800">
+                Не удалось отправить заявку
+              </h3>
+
+              <p class="mt-1 text-sm leading-6 text-red-700">
+                <%= message %>
+              </p>
+
+            </div>
+
+          </div>
+
+          <% end %>
+
+          <!-- CONNECT FORM -->
+          <form method="post"
+                action="/connect"
+                class="space-y-8">
+
+            <!-- CSRF -->
+            <input type="hidden"
+                   name="authenticity_token"
+                   value="<%= csrf_token %>">
+
+            <!-- HONEYPOT -->
+            <div aria-hidden="true"
+                 style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;">
+
+              <label for="website">
+                Сайт
+              </label>
+
+              <input id="website"
+                     type="text"
+                     name="website"
+                     tabindex="-1"
+                     autocomplete="off">
+
+            </div>
+
+            <!-- SECTION: CONTACT -->
+            <div class="space-y-6">
+
+              <div class="border-b border-slate-100 pb-4">
+
+                <h3 class="text-base font-bold text-slate-900">
+                  Контактные данные
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-500">
+                  Как с вами связаться?
+                </p>
+
+              </div>
+
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <!-- CONTACT NAME -->
+                <div>
+
+                  <label for="contact_name"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+
+                    Ваше имя
+                    <span class="text-red-500">*</span>
+
+                  </label>
+
+                  <input id="contact_name"
+                         name="contact_name"
+                         type="text"
+                         value="<%= form.contact_name %>"
+                         maxlength="100"
+                         autocomplete="name"
+                         placeholder="Как к вам обращаться"
+                         required
+                         class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+                </div>
+
+                <!-- CONTACT EMAIL -->
+                <div>
+
+                  <label for="contact_email"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+
+                    Email
+                    <span class="text-red-500">*</span>
+
+                  </label>
+
+                  <input id="contact_email"
+                         name="contact_email"
+                         type="email"
+                         value="<%= form.contact_email %>"
+                         maxlength="254"
+                         autocomplete="email"
+                         placeholder="name@company.kz"
+                         required
+                         class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+                </div>
+
+                <!-- CONTACT PHONE -->
+                <div class="md:col-span-2">
+
+                  <label for="contact_phone"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+
+                    Телефон
+                    <span class="text-red-500">*</span>
+
+                  </label>
+
+                  <input id="contact_phone"
+                         name="contact_phone"
+                         type="tel"
+                         value="<%= form.contact_phone %>"
+                         autocomplete="tel"
+                         placeholder="+7 700 000 00 00"
+                         maxlength="32"
+                         required
+                         class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- SECTION: ESTABLISHMENT -->
+            <div class="space-y-6">
+
+              <div class="border-b border-slate-100 pb-4">
+
+                <h3 class="text-base font-bold text-slate-900">
+                  Информация о заведении
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-500">
+                  Расскажите о своём ресторане, кафе или магазине
+                </p>
+
+              </div>
+
+              <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+                <!-- BIN / IIN -->
+                <div class="md:col-span-2">
+
+                  <label for="bin_iin" class="mb-2 block text-sm font-semibold text-slate-700">БИН/ИИН</label>
+                  <input id="bin_iin" name="bin_iin" type="text" inputmode="numeric" pattern="[0-9]{12}" minlength="12" maxlength="12" value="<%= form.bin_iin %>" placeholder="12 цифр" class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+                  <p class="mt-2 text-sm text-slate-400">БИН компании или ИИН индивидуального предпринимателя.</p>
+                </div>
+
+                <!-- ESTABLISHMENT NAME -->
+                <div class="md:col-span-2">
+                  <label for="establishment_name"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+
+                    Название заведения
+                    <span class="text-red-500">*</span>
+
+                  </label>
+
+                  <input id="establishment_name"
+                         name="establishment_name"
+                         type="text"
+                         value="<%= form.establishment_name %>"
+                         maxlength="150"
+                         placeholder="Например, ресторан Pinta"
+                         required
+                         class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+                </div>
+
+                <!-- CITY -->
+                <div>
+
+                  <label for="city"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+
+                    Город
+                    <span class="text-red-500">*</span>
+
+                  </label>
+
+                  <input id="city"
+                         name="city"
+                         type="text"
+                         value="<%= form.city %>"
+                         maxlength="100"
+                         placeholder="Алматы"
+                         required
+                         class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+                </div>
+
+                <!-- POS SYSTEM -->
+                <div>
+
+                  <label for="pos_system"
+                         class="mb-2 block text-sm font-semibold text-slate-700">
+                    Кассовая система
+                  </label>
+
+                  <%= render "shared/select", name: :pos_system, id: "pos_system", label: "Кассовая система", placeholder: "Выберите систему", required: false, options: options_for_select([["iiko", "iiko"], ["r_keeper", "r_keeper"], ["Poster", "poster"], ["Другая", "other"]], form.pos_system) %>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- SECTION: COMMENT -->
+            <div class="space-y-3">
+
+              <label for="comment"
+                     class="block text-sm font-semibold text-slate-700">
+                Комментарий
+              </label>
+
+              <textarea id="comment"
+                        name="comment"
+                        rows="4"
+                        maxlength="1000"
+                        placeholder="Расскажите, что нужно подключить или какие вопросы у вас есть"
+                        class="block w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10"><%= form.comment %></textarea>
+
+              <p class="text-xs leading-5 text-slate-400">
+                Необязательное поле. До 1000 символов.
+              </p>
+
+            </div>
+
+            <!-- CONSENT -->
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+
+              <div class="flex items-start gap-3">
+
+                <!-- PRESERVE CHECKED STATE -->
+                <% if form.consent.present? %>
+
+                <input id="consent"
+                       type="checkbox"
+                       name="consent"
+                       value="yes"
+                       checked
+                       required
+                       class="mt-1 h-4 w-4 shrink-0 accent-amber-600">
+
+                <% else %>
+
+                <input id="consent"
+                       type="checkbox"
+                       name="consent"
+                       value="yes"
+                       required
+                       class="mt-1 h-4 w-4 shrink-0 accent-amber-600">
+
+                <% end %>
+
+                <label for="consent"
+                       class="text-sm leading-6 text-slate-600">
+
+                  Согласен на обработку персональных
+                  данных для рассмотрения заявки
+                  и связи со мной согласно
+
+                  <a href="https://procash.kz/documents/privacy-policy.pdf"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="font-semibold text-amber-700 underline underline-offset-2 transition hover:text-amber-600">
+
+                    политике конфиденциальности
+
+                  </a>.
+
+                </label>
+
+              </div>
+
+            </div>
+
+            <!-- FORM ACTIONS -->
+            <div class="space-y-5 border-t border-slate-100 pt-7">
+
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                <p class="text-xs leading-5 text-slate-400">
+                  Поля со звёздочкой обязательны
+                </p>
+
+                <button type="submit"
+                        class="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-slate-950 px-8 py-4 text-sm font-bold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500 sm:w-auto">
+
+                  Отправить заявку
+
+                  <svg class="h-5 w-5"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round"
+                       aria-hidden="true">
+
+                    <path d="M5 12h14"/>
+                    <path d="m13 6 6 6-6 6"/>
+
+                  </svg>
+
+                </button>
+
+              </div>
+
+              <p class="text-xs leading-6 text-slate-400">
+                Отправка заявки не создаёт аккаунт
+                автоматически. После рассмотрения
+                заявки мы свяжемся с вами.
+              </p>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      </section>
+
+      <!-- ADDITIONAL INFORMATION -->
+      <div class="mt-8 flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+
+        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+
+          <svg class="h-5 w-5"
+               viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round"
+               aria-hidden="true">
+
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 11v5M12 8h.01"/>
+
+          </svg>
+
+        </div>
+
+        <div>
+
+          <h3 class="text-sm font-bold text-slate-900">
+            Как происходит подключение?
+          </h3>
+
+          <p class="mt-2 text-sm leading-6 text-slate-500">
+            После отправки заявки администратор ProCash
+            проверит информацию о заведении.
+            При одобрении заявки мы согласуем
+            дальнейшие шаги по подключению
+            и предоставлению доступа к платформе.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-200 bg-white">
+
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-6 text-xs text-slate-400 lg:px-8">
+
+      <span>© 2026 ProCash</span>
+
+      <a href="/"
+         class="transition hover:text-slate-700">
+        На главную
+      </a>
+
+    </div>
+
+  </footer>
+
+</div>
+
+</body>
+</html>

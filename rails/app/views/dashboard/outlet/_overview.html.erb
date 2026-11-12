@@ -1,0 +1,9 @@
+<div class="outlet-metrics">
+  <div><span>Столы</span><strong><%= @tables.size %></strong><small>Активные столы в заведении</small></div>
+  <div><span>Сопоставлено с POS</span><strong><%= @tables.count { |table| table.pos_table_id.present? } %><em> / <%= @tables.size %></em></strong><small>Связаны с кассовой системой</small></div>
+  <div><span>POS-система</span><strong><%= @outlet.pos_system == "iiko" ? "iiko" : @outlet.pos_system == "r_keeper" ? "r_keeper" : "Не выбрана" %></strong><small><%= @outlet.outlet_iiko_setting&.is_enabled ? "Интеграция активна" : "Интеграция не активирована" %></small></div>
+</div>
+<section class="outlet-panel"><div class="outlet-panel-heading"><div><h2>Настройка заведения</h2><p>Управляйте столами, чаевыми и подключением к кассе.</p></div></div>
+  <a class="outlet-menu-row" href="<%= base %>?tab=tables"><div><strong>Столы и QR-коды</strong><span>Создание столов и макеты для печати</span></div><span>↗</span></a>
+  <% if @membership.manages? %><a class="outlet-menu-row" href="<%= base %>?tab=tips"><div><strong>Чаевые</strong><span>Проценты и произвольная сумма для гостей</span></div><span>↗</span></a><a class="outlet-menu-row" href="<%= base %>?tab=pos"><div><strong>POS-интеграция</strong><span>Подключение, сопоставление столов и активация</span></div><span>↗</span></a><% end %>
+</section>

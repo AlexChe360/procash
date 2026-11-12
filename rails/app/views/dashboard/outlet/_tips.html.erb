@@ -1,0 +1,7 @@
+<% settings = @outlet.outlet_tip_setting %>
+<section class="outlet-panel outlet-settings-panel"><div class="outlet-panel-heading"><div><h2>Чаевые официанту</h2><p>Выберите, как гости смогут поблагодарить за обслуживание.</p></div><span class="outlet-pill"><%= settings&.is_enabled ? "Включены" : "Выключены" %></span></div>
+<%= form_with url: "#{base}/tip-settings", class: "outlet-form" do %>
+<label class="outlet-switch-row"><span><strong>Включить чаевые</strong><small>Показывать выбор чаевых на странице счёта</small></span><%= check_box_tag :is_enabled, "1", settings&.is_enabled, class: "outlet-switch" %></label>
+<div class="outlet-form-section"><h3>Предлагаемые проценты</h3><p class="muted">Гость всегда может выбрать 0%.</p><div class="outlet-percents"><% [5,10,15,20].each do |percent| %><label><%= check_box_tag "tip_#{percent}", "1", (settings&.percentages || [5,10,15]).include?(percent) %><span><%= percent %>%</span></label><% end %></div></div>
+<label class="outlet-switch-row"><span><strong>Произвольная сумма</strong><small>Разрешить гостю указать свою сумму чаевых</small></span><%= check_box_tag :allow_custom_amount, "1", settings&.allow_custom_amount, class: "outlet-switch" %></label>
+<div class="outlet-form-footer"><%= submit_tag "Сохранить настройки" %></div><% end %></section>

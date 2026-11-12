@@ -1,0 +1,1 @@
+Rails.application.config.filter_parameters += %i[question ai_assistant_api_key payment_secret secret_ciphertext secret_nonce logo qr_logo password password_confirmation token csrf_token api_key client_secret authorization token_hash api_key_ciphertext api_key_nonce]

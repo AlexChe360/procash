@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= content_for?(:title) ? yield(:title) : "ProCash" %></title>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", "select", "assistant", "data-turbo-track": "reload" %>
+  <%= javascript_importmap_tags %>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">Pro<span>Cash</span></a>
+    <nav aria-label="Основное меню">
+      <a href="/">Главная</a>
+      <a href="/connect">Подключить ресторан</a>
+      <a href="/documentation" aria-current="page">Документация</a>
+    </nav>
+    <div class="topbar-account"><a href="/login">Войти</a></div>
+  </header>
+  <main class="workspace"><%= yield %></main>
+  <%= render "shared/assistant" %>
+</body>
+</html>

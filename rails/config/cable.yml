@@ -1,0 +1,7 @@
+development:
+  adapter: async
+test:
+  adapter: test
+# No broadcast channels are used by the migrated application.
+production:
+  adapter: async

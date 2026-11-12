@@ -1,6 +1,8 @@
 # ProCash
 
-Сервис подключения ресторанов и QR-счетов на **Go 1.27.3, PostgreSQL 17, HTMX 2 и TailwindCSS 4**. Сервер использует `net/http`, `html/template` и `pgx`; JavaScript и CSS поставляются локально, без runtime CDN. Готовый бинарник содержит шаблоны и frontend-ресурсы.
+Текущая версия на VPS — **Ruby on Rails** из каталога [`rails/`](rails/). Развёртывание с отдельной пустой базой и откат описаны в [`deploy/RAILS_DEPLOYMENT.md`](deploy/RAILS_DEPLOYMENT.md). Go-код ниже сохранён для ручного отката; его автоматический деплой при push отключён.
+
+Сервис подключения ресторанов и QR-счетов на **Go 1.27.4, PostgreSQL 17, HTMX 2 и TailwindCSS 4**. Сервер использует `net/http`, `html/template` и `pgx`; JavaScript и CSS поставляются локально, без runtime CDN. Готовый бинарник содержит шаблоны и frontend-ресурсы.
 
 ## Как работает подключение
 
@@ -39,7 +41,7 @@ Redis сейчас не требуется: сессии, ограничение
 
 ## Разработка
 
-Нужны Go 1.27.3+, Node.js 24 с npm и PostgreSQL 17. Node нужен для сборки ресурсов, а не для работы сервера.
+Нужны Go 1.27.4+, Node.js 24 с npm и PostgreSQL 17. Node нужен для сборки ресурсов, а не для работы сервера.
 
 ```bash
 cp .env.example .env

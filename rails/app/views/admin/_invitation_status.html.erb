@@ -1,0 +1,14 @@
+<% invitation = MerchantInvitation.where(merchant_id: @connection_request.merchant_id).order(created_at: :desc).first %>
+<% owner_active = @connection_request.merchant.merchant_memberships.where(role: "owner", is_active: true).exists? %>
+<% if owner_active %>
+  <p class="badge">Кабинет уже активирован</p><p class="muted">Владелец может войти в кабинет. Повторное приглашение не требуется.</p>
+<% elsif invitation && invitation.revoked_at.nil? && invitation.accepted_at.nil? && invitation.expires_at > Time.current %>
+  <% sent_at = invitation.merchant_invitation_outbox&.sent_at %>
+  <p class="badge"><%= sent_at ? "Приглашение отправлено" : "Приглашение в очереди отправки" %></p>
+  <p class="muted"><%= invitation.email %> · <%= (sent_at || invitation.created_at).in_time_zone.strftime("%d.%m.%Y %H:%M") %></p>
+  <p class="muted">При повторном нажатии новое письмо отправлено не будет.</p>
+  <%= button_to "Проверить статус приглашения", "/demo/requests/#{@connection_request.id}/invitation" %>
+<% else %>
+  <% if invitation %><p class="muted">Предыдущее приглашение недействительно. Можно отправить новое.</p><% end %>
+  <%= button_to "Отправить приглашение", "/demo/requests/#{@connection_request.id}/invitation" %>
+<% end %>

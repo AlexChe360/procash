@@ -1,0 +1,390 @@
+<% merchant_name = @invitation.merchant.legal_name; token = @token; error = @error; csrf_token = form_authenticity_token %>
+
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <meta name="referrer" content="origin">
+
+  <meta name="robots" content="noindex, nofollow">
+
+  <title>Активация аккаунта — ProCash</title>
+
+  <link rel="stylesheet" href="/static/css/tailwind.css?v=4">
+
+</head>
+
+<body class="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
+
+<div class="flex min-h-screen flex-col">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-200 bg-white">
+
+    <div class="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
+
+      <!-- LOGO -->
+      <a href="/"
+         aria-label="ProCash — главная"
+         class="inline-flex shrink-0 items-center">
+
+        <img src="/assets/procash-logo.png"
+             alt="ProCash"
+             class="h-10 w-auto max-w-36 object-contain">
+
+      </a>
+
+      <span class="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                ProCash Business
+            </span>
+
+    </div>
+
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex flex-1 items-center justify-center px-5 py-12 sm:py-16 lg:py-20">
+
+    <div class="w-full max-w-xl">
+
+      <!-- ACTIVATION CARD -->
+      <section class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+
+        <!-- CARD CONTENT -->
+        <div class="px-6 py-10 sm:px-10 sm:py-12">
+
+          <!-- ICON -->
+          <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-950 text-amber-400">
+
+            <svg class="h-8 w-8"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+
+              <rect x="5" y="10"
+                    width="14" height="11" rx="2"/>
+
+              <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+
+              <path d="M12 14v3"/>
+
+            </svg>
+
+          </div>
+
+          <!-- HEADING -->
+          <div class="mt-8">
+
+                        <span class="text-xs font-bold uppercase tracking-widest text-amber-600">
+                            ПРИГЛАШЕНИЕ В PROCASH
+                        </span>
+
+            <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              Активируйте аккаунт
+            </h1>
+
+            <p class="mt-4 text-sm leading-7 text-slate-500">
+              Вас пригласили управлять компанией
+              на платформе ProCash Business.
+
+              Для завершения активации
+              необходимо установить пароль.
+            </p>
+
+          </div>
+
+          <!-- MERCHANT INFORMATION -->
+          <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+
+            <div class="flex items-start gap-4">
+
+              <!-- COMPANY ICON -->
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-slate-700 ring-1 ring-slate-200">
+
+                <svg class="h-6 w-6"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+
+                  <path d="M3 10h18l-2-7H5l-2 7Z"/>
+
+                  <path d="M3 10v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-9"/>
+
+                  <path d="M9 21v-8h6v8"/>
+
+                </svg>
+
+              </div>
+
+              <!-- COMPANY DETAILS -->
+              <div class="min-w-0">
+
+                                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                                    Ваша компания
+                                </span>
+
+                <h2 class="mt-2 break-words text-lg font-bold text-slate-900">
+                  <%= merchant_name %>
+                </h2>
+
+                <div class="mt-3">
+
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
+
+                                        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+
+                                        Владелец компании
+
+                                    </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ERROR MESSAGE -->
+          <% if (message = error) %>
+
+          <div role="alert"
+               class="mt-7 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-5">
+
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-600"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+
+              <circle cx="12" cy="12" r="10"/>
+
+              <path d="M12 8v4M12 16h.01"/>
+
+            </svg>
+
+            <div>
+
+              <h3 class="text-sm font-bold text-red-800">
+                Не удалось активировать аккаунт
+              </h3>
+
+              <p class="mt-2 text-sm leading-6 text-red-700">
+                <%= message %>
+              </p>
+
+            </div>
+
+          </div>
+
+          <% end %>
+
+          <!-- ACTIVATION FORM -->
+          <form method="post"
+                action="/invite/activate"
+                class="mt-8 space-y-6">
+
+            <!-- INVITATION TOKEN -->
+            <input type="hidden"
+                   name="token"
+                   value="<%= token %>">
+
+            <!-- CSRF -->
+            <input type="hidden"
+                   name="authenticity_token"
+                   value="<%= csrf_token %>">
+
+            <!-- PASSWORD -->
+            <div>
+
+              <label for="password"
+                     class="mb-2 block text-sm font-semibold text-slate-700">
+
+                Придумайте пароль
+
+                <span class="text-red-500">*</span>
+
+              </label>
+
+              <input type="password"
+                     id="password"
+                     name="password"
+                     autocomplete="new-password"
+                     minlength="12"
+                     maxlength="128"
+                     placeholder="Минимум 12 символов"
+                     aria-describedby="password_help"
+                     required
+                     class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+              <p id="password_help"
+                 class="mt-2 text-xs leading-5 text-slate-400">
+                Используйте пароль длиной от 12 до 128 символов.
+                Рекомендуем уникальную парольную фразу.
+              </p>
+
+            </div>
+
+            <!-- PASSWORD CONFIRMATION -->
+            <div>
+
+              <label for="password_confirmation"
+                     class="mb-2 block text-sm font-semibold text-slate-700">
+
+                Повторите пароль
+
+                <span class="text-red-500">*</span>
+
+              </label>
+
+              <input type="password"
+                     id="password_confirmation"
+                     name="password_confirmation"
+                     autocomplete="new-password"
+                     minlength="12"
+                     maxlength="128"
+                     placeholder="Повторите пароль"
+                     required
+                     class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10">
+
+            </div>
+
+            <!-- PASSWORD SECURITY NOTICE -->
+            <div class="rounded-xl border border-blue-200 bg-blue-50 p-5">
+
+              <div class="flex items-start gap-3">
+
+                <svg class="mt-0.5 h-5 w-5 shrink-0 text-blue-600"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+
+                  <circle cx="12" cy="12" r="10"/>
+
+                  <path d="M12 11v5M12 8h.01"/>
+
+                </svg>
+
+                <div>
+
+                  <h3 class="text-sm font-bold text-blue-900">
+                    Безопасность аккаунта
+                  </h3>
+
+                  <p class="mt-2 text-sm leading-6 text-blue-800">
+                    Используйте уникальный пароль,
+                    который не применяется
+                    в других сервисах.
+
+                    Не передавайте пароль
+                    и ссылку приглашения
+                    третьим лицам.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- SUBMIT -->
+            <button type="submit"
+                    class="inline-flex w-full items-center justify-center gap-3 rounded-xl bg-slate-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500">
+
+              Активировать аккаунт
+
+              <svg class="h-5 w-5"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round"
+                   aria-hidden="true">
+
+                <path d="M5 12h14"/>
+
+                <path d="m13 6 6 6-6 6"/>
+
+              </svg>
+
+            </button>
+
+          </form>
+
+          <!-- LOGIN INFORMATION -->
+          <div class="mt-8 border-t border-slate-100 pt-7">
+
+            <p class="text-center text-sm leading-6 text-slate-500">
+              После успешной активации
+              вы сможете войти в личный кабинет
+              ProCash Business.
+            </p>
+
+            <div class="mt-4 text-center">
+
+              <a href="/login"
+                 class="inline-flex items-center gap-2 text-sm font-semibold text-amber-700 transition hover:text-amber-600 hover:underline">
+
+                Перейти ко входу
+
+                <span aria-hidden="true">→</span>
+
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- INVITATION NOTICE -->
+      <p class="mx-auto mt-8 max-w-md text-center text-xs leading-6 text-slate-400">
+        Приглашение предназначено только для владельца
+        компании. Если вы не ожидали приглашения,
+        не активируйте аккаунт.
+      </p>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-200 bg-white">
+
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-6 text-xs text-slate-400 lg:px-8">
+
+      <span>© 2026 ProCash</span>
+
+      <span>Business Platform</span>
+
+    </div>
+
+  </footer>
+
+</div>
+
+</body>
+</html>
