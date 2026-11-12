@@ -48,7 +48,8 @@ Gem::Specification.new do |s|
   s.rdoc_options << "--title" << s.name << "--main" << "README.rdoc" << "--line-numbers" << "--inline-source"
   s.extra_rdoc_files = ["README.md", "BENCHMARKING.rdoc", "CONTRIBUTING.rdoc", "CHANGELOG.rdoc"]
 
-  s.files = `git ls-files`.split($/)
+  # This vendored gem is also loaded in production images without Git.
+  s.files = Dir.chdir(__dir__) { Dir.glob("{lib/**/*,*.md,*.rdoc,LICENSE*}").select { |path| File.file?(path) } }
   s.test_files = s.files.grep(%r{^(test|spec|features)/})
 
   s.required_ruby_version = ">= 2.0"

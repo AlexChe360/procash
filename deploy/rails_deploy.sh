@@ -25,6 +25,9 @@ mkdir -p "$root" "$PWD/.deploy/backups"
 chmod 700 "$root"
 python3 "$script_dir/rails_prepare.py" "$root"
 install -m 600 "$script_dir/compose.production.yml" "$root/compose.yml"
+legacy_container="$(docker compose ps -q app)"
+legacy_image="$(docker inspect --format '{{.Image}}' "$legacy_container")"
+legacy_compose() { PROCASH_IMAGE="$legacy_image" docker compose "$@"; }
 export PROCASH_IMAGE="$image"
 export PROCASH_BIND_PORT=3101
 compose() { docker compose --project-directory "$root" --env-file "$root/.env" -f "$root/compose.yml" "$@"; }
@@ -34,9 +37,9 @@ if [[ -f "$root/active-image" ]]; then
   exit 1
 fi
 backup="$PWD/.deploy/backups/pre-rails-$(date -u +%Y%m%dT%H%M%SZ)-${revision:0:12}.dump"
-docker compose exec -T db sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' > "$backup.partial"
+legacy_compose exec -T db sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' > "$backup.partial"
 [[ -s "$backup.partial" ]]
-docker compose exec -T db pg_restore --list < "$backup.partial" >/dev/null
+legacy_compose exec -T db pg_restore --list < "$backup.partial" >/dev/null
 mv -- "$backup.partial" "$backup"
 printf 'Verified previous database backup: %s\n' "$backup"
 compose up -d --wait --wait-timeout 120 db
@@ -58,13 +61,13 @@ on_failure() {
   trap - ERR HUP INT TERM
   set +e
   compose stop worker app
-  if [[ "$legacy_stopped" == true ]]; then docker compose up -d --no-deps --no-build --pull never app; fi
+  if [[ "$legacy_stopped" == true ]]; then legacy_compose up -d --no-deps --no-build --pull never app; fi
   echo 'Rails cutover failed; old application restored. Separate Rails database retained.' >&2
   exit "$status"
 }
 trap on_failure ERR HUP INT TERM
 # Preserve the existing container/image/volume and reverse proxy. Only its port changes owner.
-docker compose stop app
+legacy_compose stop app
 legacy_stopped=true
 export PROCASH_BIND_PORT=8080
 compose up -d --no-deps --force-recreate --wait --wait-timeout 150 app
